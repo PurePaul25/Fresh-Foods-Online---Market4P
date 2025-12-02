@@ -336,41 +336,37 @@ function Shop() {
 
           <div className="relative  max-w-4xl">
             <span
-              className={`inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-4 transition-all duration-700 ${
-                heroVisible
+              className={`inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-4 transition-all duration-700 ${heroVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
-              }`}
+                }`}
             >
               Ưu đãi đặc biệt hôm nay
             </span>
             <h1
-              className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 transition-all duration-700 delay-100 ${
-                heroVisible
+              className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 transition-all duration-700 delay-100 ${heroVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
-              }`}
+                }`}
             >
               Thực phẩm tươi sạch
               <br />
               <span className="text-amber-900">Giao tận nhà</span>
             </h1>
             <p
-              className={`text-white/90 text-lg md:text-xl mb-8 max-w-2xl transition-all duration-700 delay-200 ${
-                heroVisible
+              className={`text-white/90 text-lg md:text-xl mb-8 max-w-2xl transition-all duration-700 delay-200 ${heroVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
-              }`}
+                }`}
             >
               Chọn ngay những sản phẩm tươi ngon nhất với giá ưu đãi. Giao hàng
               siêu tốc trong 2 giờ!
             </p>
             <div
-              className={`flex flex-wrap gap-4 transition-all duration-700 delay-300 ${
-                heroVisible
+              className={`flex flex-wrap gap-4 transition-all duration-700 delay-300 ${heroVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
-              }`}
+                }`}
             >
               <button className="bg-white text-amber-600 px-8 py-3 rounded-full font-semibold hover:bg-amber-50 hover:scale-105 transition-all duration-300 shadow-lg">
                 Mua ngay
@@ -384,11 +380,10 @@ function Shop() {
           {/* Floating food icons */}
           <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden lg:block">
             <div
-              className={`transition-all duration-1000 delay-500 ${
-                heroVisible
+              className={`transition-all duration-1000 delay-500 ${heroVisible
                   ? "opacity-100 translate-x-0"
                   : "opacity-0 translate-x-20"
-              }`}
+                }`}
             >
               <img
                 src={strawberry}
@@ -402,11 +397,10 @@ function Shop() {
         {/* Category Section */}
         <section ref={categoryRef} className="px-6 md:px-16 lg:px-30 py-12">
           <h2
-            className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${
-              categoryVisible
+            className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${categoryVisible
                 ? "opacity-100 translate-x-0"
                 : "opacity-0 -translate-x-10"
-            }`}
+              }`}
           >
             Danh mục sản phẩm
             <span className="absolute -bottom-2 left-0 w-16 h-1 bg-amber-600 rounded-full"></span>
@@ -420,11 +414,10 @@ function Shop() {
               <div
                 key={index}
                 onClick={() => handleCategoryClick(cat.id)}
-                className={`group cursor-pointer transition-all duration-500 ease-out ${
-                  categoryVisible
+                className={`group cursor-pointer transition-all duration-500 ease-out ${categoryVisible
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-10"
-                }`}
+                  }`}
                 style={{ transitionDelay: `${index * 100 + 200}ms` }}
               >
                 <div className="relative overflow-hidden rounded-full shadow-md group-hover:shadow-xl group-hover:shadow-amber-200 transition-all duration-300 ring-4 ring-transparent group-hover:ring-amber-400">
@@ -450,19 +443,17 @@ function Shop() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <h2
-                className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${
-                  saleVisible
+                className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${saleVisible
                     ? "opacity-100 translate-x-0"
                     : "opacity-0 -translate-x-10"
-                }`}
+                  }`}
               >
                 Đang giảm giá
                 <span className="absolute -bottom-2 left-0 w-16 h-1 bg-red-500 rounded-full"></span>
               </h2>
               <span
-                className={`bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full animate-pulse transition-all duration-700 ${
-                  saleVisible ? "opacity-100" : "opacity-0"
-                }`}
+                className={`bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full animate-pulse transition-all duration-700 ${saleVisible ? "opacity-100" : "opacity-0"
+                  }`}
               >
                 HOT SALE
               </span>
@@ -470,11 +461,10 @@ function Shop() {
 
             {/* Countdown timer */}
             <div
-              className={`flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow-md transition-all duration-700 delay-200 ${
-                saleVisible
+              className={`flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow-md transition-all duration-700 delay-200 ${saleVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
-              }`}
+                }`}
             >
               <span className="text-gray-600 text-sm">Kết thúc sau:</span>
               <div className="flex gap-1">
@@ -497,11 +487,10 @@ function Shop() {
             {saleProducts.map((product, index) => (
               <div
                 key={index}
-                className={`group bg-white rounded-2xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden border-2 border-red-100 hover:border-red-300 ${
-                  saleVisible
+                className={`group bg-white rounded-2xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden border-2 border-red-100 hover:border-red-300 ${saleVisible
                     ? "opacity-100 translate-y-0 scale-100"
                     : "opacity-0 translate-y-12 scale-95"
-                }`}
+                  }`}
                 style={{ transitionDelay: `${index * 100 + 200}ms` }}
               >
                 {/* Hot badge */}
@@ -561,11 +550,10 @@ function Shop() {
           className="px-6 md:px-16 lg:px-30 py-12 bg-linear-to-b from-gray-100 to-gray-50"
         >
           <h2
-            className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${
-              bestSellingVisible
+            className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${bestSellingVisible
                 ? "opacity-100 translate-x-0"
                 : "opacity-0 -translate-x-10"
-            }`}
+              }`}
           >
             Sản phẩm bán chạy
             <span className="absolute -bottom-2 left-0 w-16 h-1 bg-amber-600 rounded-full"></span>
@@ -575,11 +563,10 @@ function Shop() {
             {bestSelling.map((product, index) => (
               <div
                 key={index}
-                className={`group bg-white rounded-xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden ${
-                  bestSellingVisible
+                className={`group bg-white rounded-xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden ${bestSellingVisible
                     ? "opacity-100 translate-y-0 scale-100"
                     : "opacity-0 translate-y-12 scale-95"
-                }`}
+                  }`}
                 style={{ transitionDelay: `${(index % 5) * 80 + 200}ms` }}
               >
                 <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse z-10">
@@ -621,19 +608,17 @@ function Shop() {
         >
           <div className="flex items-center gap-3">
             <h2
-              className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${
-                newArrivalsVisible
+              className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${newArrivalsVisible
                   ? "opacity-100 translate-x-0"
                   : "opacity-0 -translate-x-10"
-              }`}
+                }`}
             >
               Hàng vừa mới đến
               <span className="absolute -bottom-2 left-0 w-16 h-1 bg-amber-600 rounded-full"></span>
             </h2>
             <span
-              className={`bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce transition-all duration-700 ${
-                newArrivalsVisible ? "opacity-100" : "opacity-0"
-              }`}
+              className={`bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce transition-all duration-700 ${newArrivalsVisible ? "opacity-100" : "opacity-0"
+                }`}
             >
               NEW
             </span>
@@ -643,11 +628,10 @@ function Shop() {
             {newArrivals.map((product, index) => (
               <div
                 key={index}
-                className={`group bg-white rounded-xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-amber-200 ${
-                  newArrivalsVisible
+                className={`group bg-white rounded-xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-amber-200 ${newArrivalsVisible
                     ? "opacity-100 translate-y-0 scale-100"
                     : "opacity-0 translate-y-12 scale-95"
-                }`}
+                  }`}
                 style={{ transitionDelay: `${index * 100 + 200}ms` }}
               >
                 <div className="absolute top-3 left-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">

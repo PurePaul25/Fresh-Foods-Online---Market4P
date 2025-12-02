@@ -8,6 +8,7 @@ import strawberry from "../../assets/images/strawberry.jpg"
 import lemon from "../../assets/images/lemon.jpg"
 import HIKANstrawberry from "../../assets/images/HIKANstrawberry.jpg"
 import Footer from '../../components/Footer'
+import { NavLink } from 'react-router-dom'
 
 import { useRef, useState, useEffect } from "react";
 
@@ -87,18 +88,18 @@ function Home() {
                         className={`flex items-center justify-center font-semibold gap-x-3 text-white mt-6 transition-all duration-700 delay-600 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
                             }`}
                     >
-                        <a
-                            href="/shop"
+                        <NavLink
+                            to="/shop"
                             className="bg-amber-600 py-3 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
                         >
                             Đi đến cửa hàng
-                        </a>
-                        <a
-                            href="/contact"
+                        </NavLink>
+                        <NavLink
+                            to="/contact"
                             className="bg-amber-600 py-3 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
                         >
                             Liên hệ với chúng tôi
-                        </a>
+                        </NavLink>
                     </div>
                 </div>
             </div>
