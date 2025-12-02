@@ -24,7 +24,7 @@ const cartSchema = new mongoose.Schema({
 });
 
 // Index for faster user cart lookup
-cartSchema.index({ user_id: 1 });
+// cartSchema.index({ user_id: 1 });
 
 const Cart = mongoose.model('Cart', cartSchema);
 
