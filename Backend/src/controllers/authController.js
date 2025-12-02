@@ -27,15 +27,9 @@ export const signUp = async (req, res) => {
     }
 
     // kiểm tra username tồn tại chưa
-    const duplicateUsername = await User.findOne({ username });
-    if (duplicateUsername) {
-      return res.status(409).json({ message: "Username đã tồn tại" });
-    }
-
-    // kiểm tra email tồn tại chưa
-    const duplicateEmail = await User.findOne({ email });
-    if (duplicateEmail) {
-      return res.status(409).json({ message: "Email đã tồn tại" });
+    const duplicate = await User.findOne({ username });
+    if (duplicate) {
+      return res.status(409).json({ message: "username đã tồn tại" });
     }
 
     // mã hoá password
@@ -107,12 +101,9 @@ export const signIn = async (req, res) => {
       maxAge: REFRESH_TOKEN_TTL,
     });
 
-    return res.status(200).json({
-      message: `User ${user.displayName} đã logged in!`,
-      accessToken,
-      role: user.role,
-      displayName: user.displayName,
-    });
+    return res
+      .status(200)
+      .json({ message: `User ${user.displayName} đã logged in!`, accessToken, role: user.role });
   } catch (error) {
     console.error("Lỗi khi gọi signIn", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });

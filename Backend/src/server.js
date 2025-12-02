@@ -1,31 +1,37 @@
-import express from "express";
-import dotenv from "dotenv";
-import { connectDB } from "./libs/db.js";
-import authRoute from "./routes/authRoute.js";
-import userRoute from "./routes/userRoute.js";
-import cookieParser from "cookie-parser";
-import { protectedRoute } from "./middlewares/authMiddleware.js";
-import cors from "cors";
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import app from './app.js';
 
+// Load environment variables
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
+const MONGODB_URI = process.env.MONGODB_CONNECTIONSTRING;
 
-// middlewares
-app.use(express.json());
-app.use(cookieParser());
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+// Connect to MongoDB
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
 
-// public routes
-app.use("/api/auth", authRoute);
-
-// private routes
-app.use(protectedRoute);
-app.use("/api/users", userRoute);
-
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`server bắt đầu trên cổng ${PORT}`);
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  })
+  .catch((error) => {
+    console.error('❌ MongoDB connection error:', error);
+    process.exit(1);
   });
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.error('❌ Unhandled Promise Rejection:', err);
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  process.exit(1);
 });
