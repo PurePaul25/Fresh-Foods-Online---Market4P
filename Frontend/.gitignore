@@ -1,0 +1,57 @@
+# ==== Node.js ====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# ==== Environment Files ====
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ==== Logs ====
+logs/
+*.log
+logs/*.log
+debug.log
+error.log
+
+# ==== Runtime Data ====
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ==== Coverage ====
+coverage/
+.nyc_output/
+
+# ==== Build Output ====
+dist/
+build/
+tmp/
+temp/
+
+# ==== OS / Editor Files ====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==== Local Mongo / Misc ====
+dump/
+data/
+
+# ==== Optional (nếu bạn dùng TypeScript) ====
+*.tsbuildinfo
+
+# ==== PM2 ====
+.pm2/

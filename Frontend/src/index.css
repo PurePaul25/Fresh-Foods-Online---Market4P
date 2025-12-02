@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+* {
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* Tùy chỉnh thanh cuộn cho các trình duyệt WebKit (Chrome, Safari, Edge) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    /* Độ rộng của thanh cuộn */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    /* Nền của track, cho trong suốt để hòa vào sidebar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    /* Màu của con trượt */
+    border-radius: 10px;
+    /* Bo tròn con trượt */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+    /* Màu con trượt khi hover */
+}
+
+/* Tùy chỉnh thanh cuộn cho Firefox */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    /* "auto" hoặc "thin" */
+    scrollbar-color: #4a5568 transparent;
+    /* Màu con trượt và màu track */
+}
