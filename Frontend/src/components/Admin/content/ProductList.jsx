@@ -142,7 +142,7 @@ function ProductList() {
       {/* Header */}
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
-          Tất cả trái cây
+          Tất cả thực phẩm
         </h1>
         <div className="flex items-center gap-3">
           <button
@@ -277,7 +277,7 @@ function ProductList() {
                       <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                         <div className="flex items-center gap-4">
                           <img
-                            src={product.avatar}
+                            src={product.img}
                             alt={product.name}
                             className="w-12 h-12 rounded-lg object-cover"
                           />

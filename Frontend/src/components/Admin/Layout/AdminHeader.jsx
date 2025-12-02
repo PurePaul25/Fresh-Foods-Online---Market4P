@@ -26,8 +26,8 @@ import ConfirmationModal from "./ConfirmationModal";
 // Tạo một đối tượng để ánh xạ từ đường dẫn sang tiêu đề
 const routeTitles = {
   "/admin/dashboard": "Bảng điều khiển",
-  "/admin/dashboard/products": "Tất cả trái cây",
-  "/admin/dashboard/products/add": "Thêm trái cây",
+  "/admin/dashboard/products": "Tất cả thực phẩm",
+  "/admin/dashboard/products/add": "Thêm thực phẩm",
   "/admin/dashboard/orders": "Đơn hàng",
   "/admin/dashboard/customers": "Khách hàng",
   "/admin/dashboard/inventory": "Kho",
@@ -76,7 +76,7 @@ function AdminHeader({ isSidebarOpen, setSidebarOpen }) {
   useEffect(() => {
     let currentTitle = "Bảng điều khiển";
     if (location.pathname.startsWith("/admin/dashboard/products/edit/")) {
-      currentTitle = "Chỉnh sửa sản phẩm trái cây";
+      currentTitle = "Chỉnh sửa sản phẩm";
     } else if (location.pathname.startsWith("/admin/dashboard/customers/")) {
       currentTitle = "Chi tiết khách hàng";
     } else {

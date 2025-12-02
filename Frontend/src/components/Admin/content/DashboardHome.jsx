@@ -22,6 +22,7 @@ import {
   FaDollarSign,
 } from "react-icons/fa";
 import { initialOrders, getStatusIcon } from "./Orders"; // Import dữ liệu đơn hàng chung và icon
+import StatCard from "./StatCard";
 
 // Đăng ký các thành phần cần thiết cho Chart.js
 ChartJS.register(
@@ -43,27 +44,51 @@ const summaryStats = [
   {
     title: "Tổng khách hàng",
     value: 1280,
+    comparison: "+12.5%", // So sánh với kỳ trước
+    isPositive: true,
     icon: <FaUsers className="text-blue-500" size={24} />,
     bgColor: "bg-blue-100 dark:bg-blue-900/50",
   },
   {
     title: "Tổng sản phẩm",
     value: 8320,
+    comparison: "+50", // Thêm 50 sản phẩm mới
+    isPositive: true,
     icon: <FaBoxOpen className="text-orange-500" size={24} />,
     bgColor: "bg-green-100 dark:bg-green-900/50",
   },
   {
     title: "Tổng đơn hàng",
     value: 3456,
+    comparison: "+8.2%",
+    isPositive: true,
     icon: <FaShoppingCart className="text-yellow-500" size={24} />,
     bgColor: "bg-yellow-100 dark:bg-yellow-900/50",
   },
   {
     title: "Tổng doanh thu",
     value: 150000000,
+    comparison: "+15.3%",
+    isPositive: true,
     suffix: "đ",
     icon: <FaDollarSign className="text-red-500" size={24} />,
     bgColor: "bg-red-100 dark:bg-red-900/50",
+  },
+];
+
+// Dữ liệu KPIs
+const kpiData = [
+  {
+    title: "Giá trị đơn hàng trung bình",
+    value: (summaryStats[3].value / summaryStats[2].value).toFixed(0), // Revenue / Orders
+    suffix: "đ",
+    description: "Doanh thu trung bình trên mỗi đơn hàng.",
+  },
+  {
+    title: "Tỷ lệ khách hàng mới",
+    value: 35,
+    suffix: "%",
+    description: "Tỷ lệ khách hàng mua lần đầu trong tháng.",
   },
 ];
 
@@ -92,18 +117,19 @@ const salesData = {
   ],
 };
 
-// 3. Dữ liệu biểu đồ tròn danh mục trái cây
+// 3. Dữ liệu biểu đồ tròn danh mục thực phẩm
 const categoryData = {
-  labels: ["Trái cây nhiệt đới", "Họ Cam Quýt", "Quả Mọng", "Táo & Lê"],
+  labels: ["Trái cây", "Thịt", "Trứng", "Rau xanh", "Bánh mì"],
   datasets: [
     {
       label: "Sản phẩm đã bán",
-      data: [120, 90, 150, 60],
+      data: [120, 150, 80, 110, 90],
       backgroundColor: [
-        "rgba(255, 206, 86, 0.8)", // Vàng (Nhiệt đới)
-        "rgba(255, 159, 64, 0.8)", // Cam (Họ Cam Quýt)
-        "rgba(255, 99, 132, 0.8)", // Đỏ (Quả Mọng)
-        "rgba(75, 192, 192, 0.8)", // Xanh lá (Táo & Lê)
+        "rgba(255, 99, 132, 0.8)", // Trái cây (Đỏ)
+        "rgba(201, 108, 7, 0.8)", // Thịt (Nâu)
+        "rgba(255, 206, 86, 0.8)", // Trứng (Vàng)
+        "rgba(75, 192, 192, 0.8)", // Rau xanh (Xanh lá)
+        "rgba(153, 102, 255, 0.8)", // Bánh mì (Tím)
       ],
       borderColor: "#ffffff", // Màu viền trắng
       borderWidth: 2, // Tăng độ dày viền
@@ -111,6 +137,41 @@ const categoryData = {
   ],
 };
 
+// Dữ liệu giả lập cho Top sản phẩm bán chạy
+const topSellingProducts = [
+  {
+    id: "SP001",
+    name: "Thịt bò Wagyu",
+    image:
+      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/bowagyu.avif", // Đường dẫn tới ảnh sản phẩm
+    sold: 150,
+    revenue: 75000000,
+  },
+  {
+    id: "SP002",
+    name: "Bánh mì lúa mạch",
+    image:
+      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/banhmiluamach.avif",
+    sold: 300,
+    revenue: 9000000,
+  },
+  {
+    id: "SP003",
+    name: "Dâu tây HIKAN",
+    image:
+      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/HIKANstrawberry.jpg",
+    sold: 250,
+    revenue: 25000000,
+  },
+  {
+    id: "SP005",
+    name: "Bông cải xanh",
+    image:
+      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/bongcaixanh.png",
+    sold: 180,
+    revenue: 5400000,
+  },
+];
 // 4. Tùy chọn cho biểu đồ để thêm hiệu ứng
 const chartOptions = {
   responsive: true,
@@ -225,32 +286,13 @@ function DashboardHome() {
         animate="visible"
       >
         {summaryStats.map((stat, index) => (
-          <motion.div
-            key={index}
-            className={`p-4 rounded-lg shadow-md flex items-center space-x-4 ${stat.bgColor} text-gray-800 dark:text-gray-200`}
-            variants={itemVariants}
-          >
-            <div className="p-3 bg-white rounded-full">{stat.icon}</div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                {stat.title}
-              </p>
-              <p className="text-[22px] font-bold">
-                <CountUp
-                  end={stat.value}
-                  duration={2.5}
-                  separator=","
-                  suffix={stat.suffix || ""}
-                />
-              </p>
-            </div>
-          </motion.div>
+          <StatCard key={index} stat={stat} />
         ))}
       </motion.div>
 
       {/* Biểu đồ */}
       <motion.div
-        className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6"
+        className="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -271,12 +313,49 @@ function DashboardHome() {
           variants={itemVariants}
         >
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            Tỷ lệ trái cây bán chạy
+            Tỷ lệ thực phẩm bán chạy
           </h2>
           <div className="h-80">
             <Doughnut data={categoryData} options={chartOptions} />
           </div>
         </motion.div>
+      </motion.div>
+
+      {/* KPIs */}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        {kpiData.map((kpi, index) => (
+          <div
+            key={index}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
+          >
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              {kpi.title}
+            </p>
+            <p className="text-3xl font-bold text-gray-800 dark:text-gray-200 mt-2">
+              <CountUp
+                end={kpi.value}
+                duration={2}
+                separator=","
+                suffix={kpi.suffix || ""}
+                formattingFn={(value) => {
+                  if (kpi.suffix === "đ") {
+                    return value.toLocaleString("vi-VN");
+                  }
+                  return value;
+                }}
+              />
+              {kpi.suffix}
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              {kpi.description}
+            </p>
+          </div>
+        ))}
       </motion.div>
 
       {/* Bảng Đơn hàng gần đây */}
@@ -333,6 +412,61 @@ function DashboardHome() {
                       {getStatusIcon(order.status)}
                       {order.status}
                     </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+
+      {/* Bảng Top sản phẩm bán chạy */}
+      <motion.div
+        className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+      >
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+          Top sản phẩm bán chạy
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th scope="col" className="px-6 py-3">
+                  Sản phẩm
+                </th>
+                <th scope="col" className="px-6 py-3 text-center">
+                  Đã bán
+                </th>
+                <th scope="col" className="px-6 py-3 text-right">
+                  Doanh thu
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {topSellingProducts.map((product) => (
+                <tr
+                  key={product.id}
+                  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
+                  <th
+                    scope="row"
+                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        className="w-10 h-10 rounded-md object-cover"
+                        src={product.image}
+                        alt={product.name}
+                      />
+                      <span>{product.name}</span>
+                    </div>
+                  </th>
+                  <td className="px-6 py-4 text-center">{product.sold}</td>
+                  <td className="px-6 py-4 text-right">
+                    {product.revenue.toLocaleString("vi-VN")}đ
                   </td>
                 </tr>
               ))}

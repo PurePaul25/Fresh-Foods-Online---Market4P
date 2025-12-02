@@ -9,7 +9,7 @@ let mockNotifications = [
   },
   {
     id: 2,
-    message: 'Sản phẩm "Táo Envy" sắp hết hàng.',
+    message: 'Sản phẩm "Bánh mì lúa mạch nguyên cám" sắp hết hàng.',
     timestamp: new Date(Date.now() - 60 * 60 * 1000), // 1 giờ trước
     read: false,
     type: "inventory",
@@ -44,7 +44,7 @@ let mockNotifications = [
   },
   {
     id: 7,
-    message: 'Sản phẩm "Nho Xanh không hạt Mỹ" chỉ còn 20kg.',
+    message: 'Sản phẩm "Nho Xanh Nhập Khẩu" chỉ còn 20kg.',
     timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 ngày trước
     read: false,
     type: "inventory",

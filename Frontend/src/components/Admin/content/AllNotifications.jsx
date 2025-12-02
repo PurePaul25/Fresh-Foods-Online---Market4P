@@ -37,7 +37,7 @@ const initialSentAnnouncements = [
     id: "ANNOUNCE001",
     title: "🎉 Khuyến mãi Black Friday - Giảm đến 50%!",
     message:
-      "Đừng bỏ lỡ cơ hội mua sắm trái cây tươi ngon với giá cực sốc trong dịp Black Friday. Áp dụng từ 24/11 đến 26/11.",
+      "Đừng bỏ lỡ cơ hội mua sắm thực phẩm tươi ngon với giá cực sốc trong dịp Black Friday. Áp dụng từ 24/11 đến 26/11.",
     sentAt: "2025-11-23T10:00:00Z",
     sentBy: "Admin",
   },

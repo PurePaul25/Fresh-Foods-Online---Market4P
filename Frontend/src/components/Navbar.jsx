@@ -1,27 +1,42 @@
-"use client"
+"use client";
 
-import { NavLink } from "react-router-dom"
-import { Store, ShoppingCart, Search, Bell, ChevronDown } from "lucide-react"
-import { useState } from "react"
+import { NavLink } from "react-router-dom";
+import { Store, ShoppingCart, Search, Bell, ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 function Navbar() {
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Mock user data
   const user = {
     name: "Văn Tài",
     avatar: "/avatar-user-friendly-face.jpg",
-  }
+  };
 
   // Mock notifications
   const notifications = [
-    { id: 1, text: "Don hang #1234 da duoc giao thanh cong", time: "5 phút trước", unread: true },
-    { id: 2, text: "Giam gia 20% cho tat ca rau cu hom nay!", time: "1 giờ trước", unread: true },
-    { id: 3, text: "Don hang #1230 dang tren duong giao", time: "2 giờ trước", unread: false },
-  ]
+    {
+      id: 1,
+      text: "Don hang #1234 da duoc giao thanh cong",
+      time: "5 phút trước",
+      unread: true,
+    },
+    {
+      id: 2,
+      text: "Giam gia 20% cho tat ca rau cu hom nay!",
+      time: "1 giờ trước",
+      unread: true,
+    },
+    {
+      id: 3,
+      text: "Don hang #1230 dang tren duong giao",
+      time: "2 giờ trước",
+      unread: false,
+    },
+  ];
 
-  const unreadCount = notifications.filter((n) => n.unread).length
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
     <main className="fixed z-50 left-0 right-0 flex justify-between items-center px-10 py-4 font-semibold text-white bg-[#051922] shadow-lg transition-all duration-300">
@@ -31,7 +46,7 @@ function Navbar() {
         </div>
         <div className="-mt-0.5">
           <h2 className="text-lg font-bold">Market4P</h2>
-          <h3 className="text-[0.7rem] -mt-1.5">Fresh Food Online</h3>
+          <h3 className="text-[0.7rem] -mt-1.5">Fresh Foods Online</h3>
         </div>
       </div>
 
@@ -47,7 +62,9 @@ function Navbar() {
             <NavLink
               to={item.to}
               className={({ isActive }) =>
-                `transition-colors duration-300 ${isActive ? "text-amber-600" : "hover:text-amber-600"}`
+                `transition-colors duration-300 ${
+                  isActive ? "text-amber-600" : "hover:text-amber-600"
+                }`
               }
             >
               {item.label}
@@ -78,12 +95,15 @@ function Navbar() {
         <div className="relative">
           <button
             onClick={() => {
-              setShowNotifications(!showNotifications)
-              setShowUserMenu(false)
+              setShowNotifications(!showNotifications);
+              setShowUserMenu(false);
             }}
             className="p-2 hover:text-amber-600 hover:cursor-pointer transition-all duration-300 hover:scale-110 relative"
           >
-            <Bell size={22} className={showNotifications ? "text-amber-600" : ""} />
+            <Bell
+              size={22}
+              className={showNotifications ? "text-amber-600" : ""}
+            />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-bounce">
                 {unreadCount}
@@ -101,21 +121,28 @@ function Navbar() {
                 {notifications.map((notif) => (
                   <div
                     key={notif.id}
-                    className={`px-4 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors duration-200 cursor-pointer ${notif.unread ? "bg-amber-50/50" : ""
-                      }`}
+                    className={`px-4 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors duration-200 cursor-pointer ${
+                      notif.unread ? "bg-amber-50/50" : ""
+                    }`}
                   >
                     <div className="flex items-start gap-3">
-                      {notif.unread && <span className="w-2 h-2 bg-amber-500 rounded-full mt-2 flex-shrink-0"></span>}
+                      {notif.unread && (
+                        <span className="w-2 h-2 bg-amber-500 rounded-full mt-2 flex-shrink-0"></span>
+                      )}
                       <div className={notif.unread ? "" : "ml-5"}>
                         <p className="text-gray-800 text-sm">{notif.text}</p>
-                        <p className="text-gray-400 text-xs mt-1">{notif.time}</p>
+                        <p className="text-gray-400 text-xs mt-1">
+                          {notif.time}
+                        </p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="p-3 text-center border-t border-gray-100">
-                <button className="text-amber-600 text-sm font-medium hover:underline">Xem tất cả thông báo</button>
+                <button className="text-amber-600 text-sm font-medium hover:underline">
+                  Xem tất cả thông báo
+                </button>
               </div>
             </div>
           )}
@@ -125,8 +152,8 @@ function Navbar() {
         <div className="relative">
           <button
             onClick={() => {
-              setShowUserMenu(!showUserMenu)
-              setShowNotifications(false)
+              setShowUserMenu(!showUserMenu);
+              setShowNotifications(false);
             }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 hover:scale-105"
           >
@@ -138,7 +165,9 @@ function Navbar() {
             <span className="text-sm max-w-24 truncate">{user.name}</span>
             <ChevronDown
               size={16}
-              className={`transition-transform duration-300 ${showUserMenu ? "rotate-180" : ""}`}
+              className={`transition-transform duration-300 ${
+                showUserMenu ? "rotate-180" : ""
+              }`}
             />
           </button>
 
@@ -178,13 +207,13 @@ function Navbar() {
         <div
           className="fixed inset-0 z-[-1]"
           onClick={() => {
-            setShowNotifications(false)
-            setShowUserMenu(false)
+            setShowNotifications(false);
+            setShowUserMenu(false);
           }}
         />
       )}
     </main>
-  )
+  );
 }
 
-export default Navbar
+export default Navbar;

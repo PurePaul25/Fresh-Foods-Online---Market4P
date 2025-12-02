@@ -56,7 +56,7 @@ const SettingInput = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="mt-1 w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+      className="mt-1 w-full px-3 py-2 transition duration-200 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
     />
     {description && <p className="mt-1 text-xs text-gray-500">{description}</p>}
   </div>
@@ -74,8 +74,8 @@ function AdminSettings() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [storeInfo, setStoreInfo] = useState({
     storeName: "Market4P",
-    slogan: "Trái cây tươi ngon mỗi ngày",
-    contactEmail: "contact@market4p.com",
+    slogan: "Thực phẩm tươi ngon mỗi ngày",
+    contactEmail: "abc@market4p.com",
   });
 
   const handleSave = () => {
@@ -176,7 +176,7 @@ function AdminSettings() {
             name="slogan"
             value={storeInfo.slogan}
             onChange={handleStoreInfoChange}
-            placeholder="Ví dụ: Trái cây tươi ngon mỗi ngày"
+            placeholder="Ví dụ: Thực phẩm tươi ngon mỗi ngày"
           />
           <SettingInput
             label="Email liên hệ công khai"

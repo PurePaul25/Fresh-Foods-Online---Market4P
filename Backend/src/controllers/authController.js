@@ -101,9 +101,13 @@ export const signIn = async (req, res) => {
       maxAge: REFRESH_TOKEN_TTL,
     });
 
-    return res
-      .status(200)
-      .json({ message: `User ${user.displayName} đã logged in!`, accessToken, role: user.role });
+    return res.status(200).json({
+      message: `User ${user.displayName} đã logged in!`,
+      accessToken,
+      role: user.role,
+      displayName: user.displayName,
+      userId: user._id,
+    });
   } catch (error) {
     console.error("Lỗi khi gọi signIn", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });

@@ -10,7 +10,7 @@ function Logo() {
       <div className="-mt-0.5 leading-tight">
         <h2 className="text-lg font-bold">Market4P</h2>
         <h3 className="text-[0.7rem] -mt-0.5 tracking-wide">
-          Fresh Fruits Online
+          Fresh Foods Online
         </h3>
       </div>
     </div>

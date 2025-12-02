@@ -140,14 +140,14 @@ function AdminSidebar({ isSidebarOpen }) {
                 end
                 isSidebarOpen={isSidebarOpen}
               >
-                Tất cả trái cây
+                Tất cả thực phẩm
               </NavItem>
               <NavItem
                 to="/admin/dashboard/products/add"
                 icon={<PlusCircle size={18} />}
                 isSidebarOpen={isSidebarOpen}
               >
-                Thêm trái cây
+                Thêm thực phẩm
               </NavItem>
               <NavItem
                 to="/admin/dashboard/orders"

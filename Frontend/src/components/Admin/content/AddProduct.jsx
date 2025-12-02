@@ -17,13 +17,7 @@ import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 
 // Giả lập danh sách danh mục, trong thực tế sẽ lấy từ API
-const categories = [
-  "Trái cây nhiệt đới",
-  "Họ Cam Quýt",
-  "Quả Mọng",
-  "Táo & Lê",
-  "Khác",
-];
+const categories = ["Trái cây", "Thịt", "Trứng", "Rau xanh", "Bánh mì", "Khác"];
 
 const productStatuses = ["Còn hàng", "Sắp hết hàng", "Hết hàng"];
 
@@ -155,7 +149,7 @@ function AddProduct() {
           className="text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3"
         >
           <PackagePlus size={30} />
-          Thêm trái cây mới
+          Thêm thực phẩm mới
         </motion.h2>
       </div>
 
@@ -183,7 +177,7 @@ function AddProduct() {
                   name="name"
                   value={product.name}
                   onChange={handleInputChange}
-                  placeholder="Ví dụ: Táo Envy New Zealand"
+                  placeholder="Ví dụ: Thịt bò Wagyu"
                   icon={<Type size={18} />}
                 />
               </div>

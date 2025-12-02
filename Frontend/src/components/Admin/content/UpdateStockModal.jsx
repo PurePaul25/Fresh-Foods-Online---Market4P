@@ -74,7 +74,7 @@ function UpdateStockModal({ isOpen, onClose, onConfirm, product }) {
               </h3>
               <button
                 onClick={onClose}
-                className="p-1 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                className="p-1 rounded-full cursor-pointer duration-200 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
               >
                 <X size={20} />
               </button>

@@ -23,10 +23,12 @@ export const loginUser = async (email, password) => {
   }
 
   const data = await response.json();
+  console.log("Response từ backend:", data); // Debug
   return {
     accessToken: data.accessToken,
     role: data.role,
-    displayName: data.displayName,
+    displayName: data.displayName || "User", // Fallback nếu không có
+    email: email,
   };
 };
 

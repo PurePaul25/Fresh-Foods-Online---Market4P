@@ -375,16 +375,9 @@ function Customers() {
               placeholder="Tìm kiếm khách hàng..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="w-full sm:w-72 pl-10 pr-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:ring-amber-500"
+              className="w-full sm:w-72 pl-10 transition duration-200 pr-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:ring-amber-500"
             />
           </div>
-          <button
-            onClick={() => toast.error("Chức năng đang được phát triển!")}
-            className="flex items-center cursor-pointer transition-colors duration-200 gap-2 px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
-          >
-            <UserPlus size={16} />
-            Thêm mới
-          </button>
         </div>
       </div>
 
@@ -452,7 +445,7 @@ function Customers() {
                             className="w-10 h-10 rounded-full object-cover"
                           />
                           <div>
-                            <div className="font-bold text-base group-hover:text-amber-600 transition-colors">
+                            <div className="font-bold text-base duration-200 group-hover:text-amber-600 transition-colors">
                               {customer.name}
                             </div>
                             {customer.status === "banned" && (
