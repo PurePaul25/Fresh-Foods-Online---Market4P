@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   UploadCloud,
@@ -11,6 +11,9 @@ import {
   Percent,
   FileText,
   Activity,
+  Package,
+  AlertTriangle,
+  Bookmark,
 } from "lucide-react";
 import toast from "react-hot-toast";
 // eslint-disable-next-line no-unused-vars
@@ -18,8 +21,6 @@ import { motion } from "framer-motion";
 
 // Giả lập danh sách danh mục, trong thực tế sẽ lấy từ API
 const categories = ["Trái cây", "Thịt", "Trứng", "Rau xanh", "Bánh mì", "Khác"];
-
-const productStatuses = ["Còn hàng", "Sắp hết hàng", "Hết hàng"];
 
 // Component Input với Icon để tái sử dụng
 const FormInput = ({
@@ -60,9 +61,12 @@ function AddProduct() {
   const [product, setProduct] = useState({
     name: "",
     category: "",
+    brand: "",
     price: "",
     discount: "",
     description: "",
+    stock: "",
+    lowStockThreshold: "",
     status: "Còn hàng", // Thêm trạng thái mặc định
   });
   const [imagePreview, setImagePreview] = useState(null);
@@ -73,6 +77,24 @@ function AddProduct() {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
+
+  // Tự động cập nhật trạng thái dựa trên tồn kho và ngưỡng
+  useEffect(() => {
+    const stock = parseInt(product.stock, 10);
+    const threshold = parseInt(product.lowStockThreshold, 10);
+
+    // isNaN(stock) để xử lý khi người dùng xóa sạch input
+    let newStatus = "Còn hàng";
+    if (isNaN(stock) || stock === 0) {
+      newStatus = "Hết hàng";
+    } else if (stock > 0 && !isNaN(threshold) && stock <= threshold) {
+      newStatus = "Sắp hết hàng";
+    }
+
+    if (product.status !== newStatus) {
+      setProduct((prevProduct) => ({ ...prevProduct, status: newStatus }));
+    }
+  }, [product.stock, product.lowStockThreshold, product.status]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -102,7 +124,10 @@ function AddProduct() {
     if (
       !product.name ||
       !product.category ||
-      !product.price ||
+      !product.brand ||
+      !product.price || // price có thể là 0
+      product.stock === "" || // stock có thể là 0
+      product.lowStockThreshold === "" ||
       !product.status
     ) {
       toast.error("Vui lòng điền đầy đủ các trường bắt buộc!");
@@ -118,8 +143,9 @@ function AddProduct() {
       setTimeout(() => {
         console.log("Đã lưu sản phẩm:", {
           ...product,
-          stock: 0, // Mặc định tồn kho là 0 khi thêm mới
+          stock: parseInt(product.stock, 10) || 0,
           discount: product.discount || 0,
+          lowStockThreshold: parseInt(product.lowStockThreshold, 10) || 0,
           image: imageFile.name,
         });
         resolve();
@@ -212,29 +238,19 @@ function AddProduct() {
                 </div>
                 <div>
                   <label
-                    htmlFor="status"
+                    htmlFor="brand"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
                   >
-                    Trạng thái
+                    Thương hiệu
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                      <Activity size={18} />
-                    </div>
-                    <select
-                      id="status"
-                      name="status"
-                      value={product.status}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-3 py-2 transition duration-200 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-amber-500"
-                    >
-                      {productStatuses.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <FormInput
+                    id="brand"
+                    name="brand"
+                    value={product.brand}
+                    onChange={handleInputChange}
+                    placeholder="Ví dụ: HIKAN"
+                    icon={<Bookmark size={18} />}
+                  />
                 </div>
               </div>
             </fieldset>
@@ -267,7 +283,7 @@ function AddProduct() {
                     htmlFor="discount"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
                   >
-                    Giảm giá (%)
+                    Giảm giá (%) (nếu có)
                   </label>
                   <FormInput
                     id="discount"
@@ -279,6 +295,50 @@ function AddProduct() {
                     min="0"
                     max="100"
                     icon={<Percent size={18} />}
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset className="space-y-6">
+              <legend className="block text-base font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                Quản lý kho
+              </legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="stock"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
+                  >
+                    Tồn kho ban đầu
+                  </label>
+                  <FormInput
+                    id="stock"
+                    name="stock"
+                    type="number"
+                    value={product.stock}
+                    onChange={handleInputChange}
+                    placeholder="Ví dụ: 100"
+                    min="0"
+                    icon={<Package size={18} />}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="lowStockThreshold"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
+                  >
+                    Ngưỡng sắp hết
+                  </label>
+                  <FormInput
+                    id="lowStockThreshold"
+                    name="lowStockThreshold"
+                    type="number"
+                    value={product.lowStockThreshold}
+                    onChange={handleInputChange}
+                    placeholder="Ví dụ: 10"
+                    min="0"
+                    icon={<AlertTriangle size={18} />}
                   />
                 </div>
               </div>
