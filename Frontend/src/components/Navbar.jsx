@@ -3,16 +3,11 @@
 import { NavLink } from "react-router-dom";
 import { Store, ShoppingCart, Search, Bell, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import UserInfor from "../components/common/UserInfor"
 
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-
-  // Mock user data
-  const user = {
-    name: "Văn Tài",
-    avatar: "/avatar-user-friendly-face.jpg",
-  };
 
   // Mock notifications
   const notifications = [
@@ -62,8 +57,7 @@ function Navbar() {
             <NavLink
               to={item.to}
               className={({ isActive }) =>
-                `transition-colors duration-300 ${
-                  isActive ? "text-amber-600" : "hover:text-amber-600"
+                `transition-colors duration-300 ${isActive ? "text-amber-600" : "hover:text-amber-600"
                 }`
               }
             >
@@ -114,20 +108,19 @@ function Navbar() {
           {/* Notification Dropdown */}
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300 border border-gray-100">
-              <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-3">
+              <div className="bg-linear-to-r from-amber-500 to-amber-600 px-4 py-3">
                 <h3 className="text-white font-bold">Thông báo</h3>
               </div>
               <div className="max-h-80 overflow-y-auto">
                 {notifications.map((notif) => (
                   <div
                     key={notif.id}
-                    className={`px-4 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors duration-200 cursor-pointer ${
-                      notif.unread ? "bg-amber-50/50" : ""
-                    }`}
+                    className={`px-4 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors duration-200 cursor-pointer ${notif.unread ? "bg-amber-50/50" : ""
+                      }`}
                   >
                     <div className="flex items-start gap-3">
                       {notif.unread && (
-                        <span className="w-2 h-2 bg-amber-500 rounded-full mt-2 flex-shrink-0"></span>
+                        <span className="w-2 h-2 bg-amber-500 rounded-full mt-2 shrink-0"></span>
                       )}
                       <div className={notif.unread ? "" : "ml-5"}>
                         <p className="text-gray-800 text-sm">{notif.text}</p>
@@ -158,24 +151,25 @@ function Navbar() {
             className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 hover:scale-105"
           >
             <img
-              src={user.avatar || "/placeholder.svg"}
+              src={"/placeholder.svg"}
               alt="Avatar"
               className="w-8 h-8 rounded-full object-cover border-2 border-amber-500"
             />
-            <span className="text-sm max-w-24 truncate">{user.name}</span>
+            <span className="text-sm max-w-24 truncate">
+              <UserInfor></UserInfor>
+            </span>
             <ChevronDown
               size={16}
-              className={`transition-transform duration-300 ${
-                showUserMenu ? "rotate-180" : ""
-              }`}
+              className={`transition-transform duration-300 ${showUserMenu ? "rotate-180" : ""
+                }`}
             />
           </button>
 
           {/* User Dropdown Menu */}
           {showUserMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300 border border-gray-100">
-              <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-amber-500 to-amber-600">
-                <p className="text-white font-bold truncate">{user.name}</p>
+              <div className="px-4 py-3 border-b border-gray-100 bg-linear-to-r from-amber-500 to-amber-600">
+                <div className="text-white font-bold truncate"><UserInfor></UserInfor></div>
                 <p className="text-amber-100 text-xs">Người dùng</p>
               </div>
               <div className="py-2">

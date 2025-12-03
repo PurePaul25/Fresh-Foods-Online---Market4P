@@ -1,0 +1,285 @@
+// src/services/api.js
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
+class ApiService {
+    constructor() {
+        this.baseURL = API_BASE_URL
+        this.refreshing = false
+        this.refreshSubscribers = []
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    async request(endpoint, options = {}) {
+        const url = `${this.baseURL}${endpoint}`
+
+        const config = {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
+            credentials: 'include', // Gửi cookie (refreshToken)
+        }
+
+        // Thêm access token nếu có
+        const accessToken = localStorage.getItem('accessToken')
+        if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`
+        }
+
+        try {
+            const response = await fetch(url, config)
+
+            // Xử lý 401 - Token hết hạn
+            if (response.status === 401 && !endpoint.includes('/auth/')) {
+                const refreshed = await this.handleTokenRefresh()
+                if (refreshed) {
+                    // Retry request với token mới
+                    config.headers.Authorization = `Bearer ${localStorage.getItem('accessToken')}`
+                    return fetch(url, config).then(res => res.json())
+                } else {
+                    this.logout()
+                    window.location.href = '/login'
+                    throw new Error('Session expired')
+                }
+            }
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Something went wrong')
+            }
+
+            return data
+        } catch (error) {
+            console.error('API Error:', error)
+            throw error
+        }
+    }
+
+    async handleTokenRefresh() {
+        if (this.refreshing) {
+            // Nếu đang refresh, đợi kết quả
+            return new Promise((resolve) => {
+                this.refreshSubscribers.push((token) => {
+                    resolve(!!token)
+                })
+            })
+        }
+
+        this.refreshing = true
+
+        try {
+            const response = await fetch(`${this.baseURL}/auth/refresh`, {
+                method: 'POST',
+                credentials: 'include'
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                localStorage.setItem('accessToken', data.accessToken)
+
+                // Notify subscribers
+                this.refreshSubscribers.forEach(callback => callback(data.accessToken))
+                this.refreshSubscribers = []
+
+                return true
+            }
+
+            return false
+        } catch (error) {
+            console.error('Token refresh failed:', error)
+            return false
+        } finally {
+            this.refreshing = false
+        }
+    }
+
+    // ==================== AUTH ====================
+
+    async signup(userData) {
+        return this.request('/auth/signup', {
+            method: 'POST',
+            body: JSON.stringify(userData)
+        })
+    }
+
+    async signin(email, password) {
+        const data = await this.request('/auth/signin', {
+            method: 'POST',
+            body: JSON.stringify({ email, password })
+        })
+
+        // Lưu token và thông tin user
+        if (data.accessToken) {
+            localStorage.setItem('accessToken', data.accessToken)
+            localStorage.setItem('user', JSON.stringify({
+                userId: data.userId,
+                displayName: data.displayName,
+                role: data.role
+            }))
+        }
+
+        return data
+    }
+
+    async signout() {
+        try {
+            await this.request('/auth/signout', { method: 'POST' })
+        } finally {
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('user')
+        }
+    }
+
+    async getCurrentUser() {
+        return this.request('/users/me')
+    }
+
+    // ==================== PRODUCTS ====================
+
+    async getProducts(params = {}) {
+        const queryString = new URLSearchParams(params).toString()
+        return this.request(`/products?${queryString}`)
+    }
+
+    async getProductById(id) {
+        return this.request(`/products/${id}`)
+    }
+
+    async createProduct(formData) {
+        // FormData để upload ảnh
+        return fetch(`${this.baseURL}/products`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            credentials: 'include',
+            body: formData // Không set Content-Type, browser tự set
+        }).then(res => res.json())
+    }
+
+    async updateProduct(id, formData) {
+        return fetch(`${this.baseURL}/products/${id}`, {
+            method: 'PUT',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            },
+            credentials: 'include',
+            body: formData
+        }).then(res => res.json())
+    }
+
+    async deleteProduct(id) {
+        return this.request(`/products/${id}`, {
+            method: 'DELETE'
+        })
+    }
+
+    // ==================== CART ====================
+
+    async getCart() {
+        return this.request('/cart')
+    }
+
+    async addToCart(productId, quantity = 1) {
+        return this.request('/cart/add', {
+            method: 'POST',
+            body: JSON.stringify({ product_id: productId, quantity })
+        })
+    }
+
+    async updateCartItem(productId, quantity) {
+        return this.request('/cart/update', {
+            method: 'PUT',
+            body: JSON.stringify({ product_id: productId, quantity })
+        })
+    }
+
+    async removeFromCart(productId) {
+        return this.request('/cart/remove', {
+            method: 'DELETE',
+            body: JSON.stringify({ product_id: productId })
+        })
+    }
+
+    async clearCart() {
+        return this.request('/cart/clear', {
+            method: 'DELETE'
+        })
+    }
+
+    // ==================== ORDERS ====================
+
+    async createOrder(orderData) {
+        return this.request('/orders', {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        })
+    }
+
+    async getUserOrders(params = {}) {
+        const queryString = new URLSearchParams(params).toString()
+        return this.request(`/orders?${queryString}`)
+    }
+
+    async getAllOrders(params = {}) {
+        const queryString = new URLSearchParams(params).toString()
+        return this.request(`/orders/admin/all?${queryString}`)
+    }
+
+    async updateOrderStatus(orderId, status) {
+        return this.request(`/orders/${orderId}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status })
+        })
+    }
+
+    // ==================== REVIEWS ====================
+
+    async getProductReviews(productId, params = {}) {
+        const queryString = new URLSearchParams(params).toString()
+        return this.request(`/products/${productId}/reviews?${queryString}`)
+    }
+
+    async createReview(productId, reviewData) {
+        return this.request(`/products/${productId}/reviews`, {
+            method: 'POST',
+            body: JSON.stringify(reviewData)
+        })
+    }
+
+    // ==================== ADMIN ====================
+
+    async getDashboardStats() {
+        return this.request('/admin/stats')
+    }
+
+    async getRevenueAnalytics(period = 'month') {
+        return this.request(`/admin/revenue?period=${period}`)
+    }
+
+    // ==================== UTILS ====================
+
+    logout() {
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('user')
+    }
+
+    getStoredUser() {
+        const userStr = localStorage.getItem('user')
+        return userStr ? JSON.parse(userStr) : null
+    }
+
+    isAuthenticated() {
+        return !!localStorage.getItem('accessToken')
+    }
+
+    isAdmin() {
+        const user = this.getStoredUser()
+        return user?.role === 'admin'
+    }
+}
+
+export default new ApiService()

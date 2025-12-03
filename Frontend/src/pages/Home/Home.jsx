@@ -1,5 +1,5 @@
 import PromoCountdown from '../../components/PromoCountdown/PromoCountdown'
-import Navbar from "../../components/navbar"
+import Navbar from "../../components/Navbar"
 import Button from '../../components/Button/Button'
 import trangchu from "../../assets/images/trangchu.jpg"
 import { Truck, PhoneCall, RefreshCcw, ShoppingCart } from "lucide-react"
@@ -13,8 +13,8 @@ import { NavLink } from 'react-router-dom'
 import { useRef, useState, useEffect } from "react";
 
 function useScrollAnimation(threshold = 0.1) {
-    const ref = useRef(null)
     const [isVisible, setIsVisible] = useState(false)
+    const ref = useRef(null)
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -40,7 +40,10 @@ function useScrollAnimation(threshold = 0.1) {
     return [ref, isVisible]
 }
 
+
+
 function Home() {
+    const [user, setUser] = useState(null);
     const [heroRef, heroVisible] = useScrollAnimation()
     const [servicesRef, servicesVisible] = useScrollAnimation()
     const [productsRef, productsVisible] = useScrollAnimation()
