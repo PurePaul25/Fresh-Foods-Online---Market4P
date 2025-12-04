@@ -12,6 +12,9 @@ import {
   Percent,
   Frown,
   Activity,
+  Package,
+  AlertTriangle,
+  Bookmark,
 } from "lucide-react";
 import toast from "react-hot-toast";
 // eslint-disable-next-line no-unused-vars
@@ -20,8 +23,6 @@ import { mockProducts } from "../Layout/mockApi";
 
 // Giả lập danh sách danh mục, trong thực tế sẽ lấy từ API
 const categories = ["Trái cây", "Thịt", "Trứng", "Rau xanh", "Bánh mì", "Khác"];
-
-const productStatuses = ["Còn hàng", "Sắp hết hàng", "Hết hàng"];
 
 // Component Input với Icon để tái sử dụng
 const FormInput = ({
@@ -79,6 +80,31 @@ function EditProduct() {
     setProduct({ ...product, [name]: value });
   };
 
+  // Lấy các giá trị cần thiết từ state product
+  const { stock, lowStockThreshold, status } = product || {};
+
+  // Tự động cập nhật trạng thái dựa trên tồn kho và ngưỡng
+  useEffect(() => {
+    // Chuyển đổi sang số, xử lý trường hợp chưa có giá trị
+    const currentStock = parseInt(stock, 10);
+    const currentThreshold = parseInt(lowStockThreshold, 10);
+
+    let newStatus = "Còn hàng";
+    if (isNaN(currentStock) || currentStock === 0) {
+      newStatus = "Hết hàng";
+    } else if (
+      currentStock > 0 &&
+      !isNaN(currentThreshold) &&
+      currentStock <= currentThreshold
+    ) {
+      newStatus = "Sắp hết hàng";
+    }
+
+    if (status !== newStatus) {
+      setProduct((prevProduct) => ({ ...prevProduct, status: newStatus }));
+    }
+  }, [stock, lowStockThreshold, status]); // Chỉ phụ thuộc vào các giá trị nguyên thủy
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
@@ -106,6 +132,7 @@ function EditProduct() {
     if (
       !product.name ||
       !product.category ||
+      !product.brand ||
       !product.price ||
       !product.status
     ) {
@@ -228,29 +255,19 @@ function EditProduct() {
                 </div>
                 <div>
                   <label
-                    htmlFor="status"
+                    htmlFor="brand"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
                   >
-                    Trạng thái
+                    Thương hiệu
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                      <Activity size={18} />
-                    </div>
-                    <select
-                      id="status"
-                      name="status"
-                      value={product.status}
-                      onChange={handleInputChange}
-                      className="w-full pl-10 pr-3 py-2 transition duration-200 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-amber-500"
-                    >
-                      {productStatuses.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <FormInput
+                    id="brand"
+                    name="brand"
+                    value={product.brand || ""}
+                    onChange={handleInputChange}
+                    placeholder="Ví dụ: HIKAN"
+                    icon={<Bookmark size={18} />}
+                  />
                 </div>
               </div>
             </fieldset>
@@ -283,7 +300,7 @@ function EditProduct() {
                     htmlFor="discount"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
                   >
-                    Giảm giá (%)
+                    Giảm giá (%) (nếu có)
                   </label>
                   <FormInput
                     id="discount"
@@ -295,6 +312,50 @@ function EditProduct() {
                     min="0"
                     max="100"
                     icon={<Percent size={18} />}
+                  />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset className="space-y-6">
+              <legend className="block text-base font-semibold text-gray-700 dark:text-gray-200 mb-2">
+                Quản lý kho
+              </legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="stock"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
+                  >
+                    Tồn kho
+                  </label>
+                  <FormInput
+                    id="stock"
+                    name="stock"
+                    type="number"
+                    value={product.stock ?? ""}
+                    onChange={handleInputChange}
+                    placeholder="Ví dụ: 100"
+                    min="0"
+                    icon={<Package size={18} />}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="lowStockThreshold"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
+                  >
+                    Ngưỡng sắp hết
+                  </label>
+                  <FormInput
+                    id="lowStockThreshold"
+                    name="lowStockThreshold"
+                    type="number"
+                    value={product.lowStockThreshold ?? ""}
+                    onChange={handleInputChange}
+                    placeholder="Ví dụ: 10"
+                    min="0"
+                    icon={<AlertTriangle size={18} />}
                   />
                 </div>
               </div>

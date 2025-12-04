@@ -157,9 +157,9 @@ const topSellingProducts = [
   },
   {
     id: "SP003",
-    name: "Dâu tây HIKAN",
+    name: "Dâu tây Đà Lạt",
     image:
-      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/HIKANstrawberry.jpg",
+      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/strawberry.jpg",
     sold: 250,
     revenue: 25000000,
   },
