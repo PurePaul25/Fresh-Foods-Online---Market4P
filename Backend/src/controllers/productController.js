@@ -94,26 +94,71 @@ export const getProductById = async (req, res, next) => {
  */
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, price, description, stock, category_id, brand_id, status, discount } = req.body;
+    let {
+      name,
+      price,
+      description,
+      stock,
+      category_id,
+      brand_id,
+      status,
+      discount,
+      // Hỗ trợ frontend gửi tên thay vì id
+      category,
+      brand
+    } = req.body;
 
-    // Validate category and brand exist
-    const [category, brand] = await Promise.all([
-      Category.findById(category_id),
-      Brand.findById(brand_id)
-    ]);
+    // Chuẩn hóa / tạo Category nếu frontend chỉ gửi tên
+    let categoryDoc = null;
+    if (category_id) {
+      categoryDoc = await Category.findById(category_id);
+    } else if (category) {
+      categoryDoc = await Category.findOne({ name: category });
+      if (!categoryDoc) {
+        // Tự tạo Category mới nếu chưa tồn tại
+        categoryDoc = await Category.create({ name: category });
+      }
+      category_id = categoryDoc._id;
+    }
 
-    if (!category) throw new ApiError(404, 'Category not found');
-    if (!brand) throw new ApiError(404, 'Brand not found');
+    // Chuẩn hóa / tạo Brand nếu frontend chỉ gửi tên
+    let brandDoc = null;
+    if (brand_id) {
+      brandDoc = await Brand.findById(brand_id);
+    } else if (brand) {
+      brandDoc = await Brand.findOne({ name: brand });
+      if (!brandDoc) {
+        // Tự tạo Brand mới nếu chưa tồn tại
+        brandDoc = await Brand.create({ name: brand });
+      }
+      brand_id = brandDoc._id;
+    }
 
-    // Upload images to Cloudinary
+    if (!categoryDoc) throw new ApiError(404, 'Category not found');
+    if (!brandDoc) throw new ApiError(404, 'Brand not found');
+
+    // Upload images (ưu tiên Cloudinary; nếu lỗi thì fallback sang base64 nội bộ)
     const images = [];
     if (req.files && req.files.length > 0) {
-      // console.log('Files:', req.files);
-      const uploadPromises = req.files.map(file =>
-        uploadToCloudinary(file.buffer, 'ecommerce/products')
-      );
-      const uploadResults = await Promise.all(uploadPromises);
-      images.push(...uploadResults);
+      try {
+        const uploadPromises = req.files.map(file =>
+          uploadToCloudinary(file.buffer, 'ecommerce/products')
+        );
+        const uploadResults = await Promise.all(uploadPromises);
+        images.push(...uploadResults);
+      } catch (err) {
+        // Nếu Cloudinary lỗi (ví dụ thiếu api_key), fallback sang lưu base64 để ảnh vẫn hiển thị được
+        console.error(
+          'Image upload to Cloudinary failed, falling back to base64 URLs:',
+          err.message || err
+        );
+        req.files.forEach((file) => {
+          images.push({
+            url: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+            public_id: 'local-base64'
+          });
+        });
+      }
     }
 
     // Create product
@@ -150,14 +195,32 @@ export const createProduct = async (req, res, next) => {
 export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
 
     const product = await Product.findOne({ _id: id, deletedAt: null });
     if (!product) {
       throw new ApiError(404, 'Product not found');
     }
 
-    // Validate category and brand if provided
+    // Chuẩn hóa / tạo Category nếu frontend chỉ gửi tên
+    if (!updateData.category_id && updateData.category) {
+      let foundCategory = await Category.findOne({ name: updateData.category });
+      if (!foundCategory) {
+        foundCategory = await Category.create({ name: updateData.category });
+      }
+      updateData.category_id = foundCategory._id;
+    }
+
+    // Chuẩn hóa / tạo Brand nếu frontend chỉ gửi tên
+    if (!updateData.brand_id && updateData.brand) {
+      let foundBrand = await Brand.findOne({ name: updateData.brand });
+      if (!foundBrand) {
+        foundBrand = await Brand.create({ name: updateData.brand });
+      }
+      updateData.brand_id = foundBrand._id;
+    }
+
+    // Validate category and brand if provided (phòng trường hợp gửi sai id)
     if (updateData.category_id) {
       const category = await Category.findById(updateData.category_id);
       if (!category) throw new ApiError(404, 'Category not found');
@@ -167,18 +230,33 @@ export const updateProduct = async (req, res, next) => {
       if (!brand) throw new ApiError(404, 'Brand not found');
     }
 
-    // Handle new image uploads
+    // Không lưu thừa các field hiển thị bên ngoài
+    delete updateData.category;
+    delete updateData.brand;
+
+    // Handle new image uploads (ưu tiên Cloudinary, fallback base64)
     if (req.files && req.files.length > 0) {
-      const oldImageIds = product.images.map(img => img.public_id);
-      if (oldImageIds.length > 0) {
-        await deleteMultipleFromCloudinary(oldImageIds);
+      try {
+        const oldImageIds = product.images.map(img => img.public_id);
+        if (oldImageIds.length > 0) {
+          await deleteMultipleFromCloudinary(oldImageIds);
+        }
+
+        const uploadResults = await Promise.all(
+          req.files.map(file => uploadToCloudinary(file.buffer, 'ecommerce/products'))
+        );
+
+        updateData.images = uploadResults;
+      } catch (err) {
+        console.error(
+          'Image upload to Cloudinary failed on update, falling back to base64 URLs:',
+          err.message || err
+        );
+        updateData.images = req.files.map((file) => ({
+          url: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+          public_id: 'local-base64'
+        }));
       }
-
-      const uploadResults = await Promise.all(
-        req.files.map(file => uploadToCloudinary(file.buffer, 'ecommerce/products'))
-      );
-
-      updateData.images = uploadResults;
     }
 
 
@@ -216,9 +294,16 @@ export const deleteProduct = async (req, res, next) => {
     // Lấy danh sách public_id của ảnh
     const publicIds = product.images?.map(img => img.public_id) || [];
 
-    // Xóa ảnh Cloudinary
+    // Xóa ảnh Cloudinary (nếu đã cấu hình); nếu Cloudinary lỗi thì chỉ log và tiếp tục xóa sản phẩm
     if (publicIds.length > 0) {
-      await deleteMultipleFromCloudinary(publicIds);
+      try {
+        await deleteMultipleFromCloudinary(publicIds);
+      } catch (err) {
+        console.error(
+          'Failed to delete images from Cloudinary, continuing to delete product only:',
+          err.message || err
+        );
+      }
     }
 
     // Xóa sản phẩm khỏi MongoDB

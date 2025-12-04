@@ -150,9 +150,10 @@ function AdminHeader({ isSidebarOpen, setSidebarOpen }) {
     setLogoutModalOpen(false);
     // Thực hiện đăng xuất
     localStorage.removeItem("user");
-    toast.success("Đăng xuất thành công!");
-    // Chuyển hướng về trang đăng nhập với thông báo
-    navigate("/login", { state: { message: "Bạn đã đăng xuất." } });
+    // Hiển thị toast trong 4 giây rồi tự tắt
+    toast.success("Đăng xuất thành công!", { duration: 4000 });
+    // Chuyển hướng về trang chủ sau khi đăng xuất
+    navigate("/");
   };
 
   const handleSearch = (e) => {

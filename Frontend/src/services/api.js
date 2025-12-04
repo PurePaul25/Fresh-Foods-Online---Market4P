@@ -150,25 +150,93 @@ class ApiService {
 
     async createProduct(formData) {
         // FormData để upload ảnh
-        return fetch(`${this.baseURL}/products`, {
+        const url = `${this.baseURL}/products`
+
+        const doRequest = async () => {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                },
+                credentials: 'include',
+                body: formData // Không set Content-Type, browser tự set
+            })
+            const data = await res.json()
+            if (!res.ok) {
+                throw new Error(data.message || 'Failed to create product')
+            }
+            return data
+        }
+
+        const res = await fetch(url, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             },
             credentials: 'include',
-            body: formData // Không set Content-Type, browser tự set
-        }).then(res => res.json())
+            body: formData
+        })
+
+        if (res.status === 401) {
+            const refreshed = await this.handleTokenRefresh()
+            if (refreshed) {
+                return doRequest()
+            }
+            this.logout()
+            window.location.href = '/login'
+            throw new Error('Session expired')
+        }
+
+        const data = await res.json()
+        if (!res.ok) {
+            throw new Error(data.message || 'Failed to create product')
+        }
+        return data
     }
 
     async updateProduct(id, formData) {
-        return fetch(`${this.baseURL}/products/${id}`, {
+        const url = `${this.baseURL}/products/${id}`
+
+        const doRequest = async () => {
+            const res = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+                },
+                credentials: 'include',
+                body: formData
+            })
+            const data = await res.json()
+            if (!res.ok) {
+                throw new Error(data.message || 'Failed to update product')
+            }
+            return data
+        }
+
+        const res = await fetch(url, {
             method: 'PUT',
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             },
             credentials: 'include',
             body: formData
-        }).then(res => res.json())
+        })
+
+        if (res.status === 401) {
+            const refreshed = await this.handleTokenRefresh()
+            if (refreshed) {
+                return doRequest()
+            }
+            this.logout()
+            window.location.href = '/login'
+            throw new Error('Session expired')
+        }
+
+        const data = await res.json()
+        if (!res.ok) {
+            throw new Error(data.message || 'Failed to update product')
+        }
+        return data
     }
 
     async deleteProduct(id) {

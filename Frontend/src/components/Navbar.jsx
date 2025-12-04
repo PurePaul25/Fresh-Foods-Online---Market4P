@@ -77,10 +77,15 @@ function Navbar() {
 
   const handleLogout = () => {
     setShowUserMenu(false);
+    // Xóa thông tin user trong state & localStorage
+    setUser(null);
+    setUserAvatar(null);
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
-    toast.success("Đăng xuất thành công!");
-    navigate("/login");
+    // Hiển thị toast trong 4 giây rồi tự tắt
+    toast.success("Đăng xuất thành công!", { duration: 4000 });
+    // Điều hướng về trang chủ sau khi đăng xuất
+    navigate("/");
   };
 
   const handleLoginClick = () => {
