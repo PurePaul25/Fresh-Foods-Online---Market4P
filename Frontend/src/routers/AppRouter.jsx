@@ -8,6 +8,7 @@ import Contact from "../pages/Contact/Contact";
 import Checkout from "../pages/Checkout/Checkout";
 import Shop from "../pages/Shop/Shop";
 import Cart from "../pages/Cart/Cart.jsx";
+import UserNotifications from "../components/User/Notifications.jsx";
 
 import AdminDashboard from "../pages/Admin/Dashboard";
 import DashboardHome from "../components/Admin/content/DashboardHome.jsx";
@@ -26,7 +27,6 @@ import CustomerDetail from "../components/Admin/content/CustomerDetail.jsx";
 import Inventory from "../components/Admin/content/Inventory.jsx";
 import Coupons from "../components/Admin/content/Coupons.jsx";
 
-
 import App from "../App";
 
 export default function AppRouter() {
@@ -37,7 +37,7 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
 
         {/* Các route dùng layout App */}
-        <Route path="*" element={<App />}>
+        <Route element={<App />}>
           <Route index element={<Home />} />
           <Route path="home" element={<Home />} />
           <Route path="about" element={<About />} />
@@ -45,7 +45,7 @@ export default function AppRouter() {
           <Route path="shop" element={<Shop />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="cart" element={<Cart />} />
-
+          <Route path="notifications" element={<UserNotifications />} />
         </Route>
 
         {/* Admin route */}

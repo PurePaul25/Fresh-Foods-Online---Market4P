@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
-  fetchNotifications,
+  fetchAdminNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-  deleteNotification,
+  deleteSingleNotification,
   deleteAllNotifications,
-} from "../Layout/notificationApi";
+  sendBroadcastNotification,
+  fetchBroadcastHistory,
+  updateBroadcast,
+  deleteBroadcast,
+} from "../../../services/notificationService.js";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import {
@@ -32,26 +36,11 @@ import AnnouncementDetailModal from "./AnnouncementDetailModal";
 import { AnimatePresence, motion } from "framer-motion";
 
 // --- Dữ liệu giả lập cho Lịch sử gửi thông báo ---
-const initialSentAnnouncements = [
-  {
-    id: "ANNOUNCE001",
-    title: "🎉 Khuyến mãi Black Friday - Giảm đến 50%!",
-    message:
-      "Đừng bỏ lỡ cơ hội mua sắm thực phẩm tươi ngon với giá cực sốc trong dịp Black Friday. Áp dụng từ 24/11 đến 26/11.",
-    sentAt: "2025-11-23T10:00:00Z",
-    sentBy: "Admin",
-  },
-  {
-    id: "ANNOUNCE002",
-    title: "📢 Thông báo bảo trì hệ thống",
-    message:
-      "Hệ thống sẽ được bảo trì vào lúc 2h sáng ngày 20/11 để nâng cấp. Xin cảm ơn.",
-    sentAt: "2025-11-19T15:30:00Z",
-    sentBy: "Admin",
-  },
-];
+const initialSentAnnouncements = [];
 
 function AllNotifications() {
+  // Track pending broadcast request with unique ID
+  const pendingBroadcastRef = useRef(null);
   const [allNotifications, setAllNotifications] = useState([]);
   const [sentAnnouncements, setSentAnnouncements] = useState(
     initialSentAnnouncements
@@ -65,6 +54,7 @@ function AllNotifications() {
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: "",
     message: "",
+    priority: "medium",
   });
   const [isDeleteAnnouncementModalOpen, setDeleteAnnouncementModalOpen] =
     useState(false);
@@ -74,52 +64,90 @@ function AllNotifications() {
 
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Flag để prevent double submit
+
   useEffect(() => {
     // Chỉ fetch khi ở tab "system"
     if (activeTab !== "system") {
       return;
     }
+    loadNotifications();
+  }, [activeTab, currentPage, filterType]);
+
+  useEffect(() => {
+    // Load broadcast history khi tab chuyển sang "broadcast"
+    if (activeTab === "broadcast") {
+      loadBroadcastHistory();
+    }
+  }, [activeTab]);
+
+  const loadNotifications = async () => {
     setLoading(true);
-    fetchNotifications()
-      .then((data) => {
-        const sortedData = data.sort(
-          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-        );
-        setAllNotifications(sortedData);
-      })
-      .catch((err) => console.error("Failed to fetch notifications:", err))
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [activeTab]); // Thêm activeTab vào dependency array
+    try {
+      const response = await fetchAdminNotifications(
+        filterType,
+        currentPage,
+        itemsPerPage
+      );
+      if (response.success) {
+        setAllNotifications(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to load notifications:", error);
+      toast.error("Không thể tải thông báo");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBroadcastHistory = async () => {
+    setLoading(true);
+    try {
+      const response = await fetchBroadcastHistory(1, 50);
+      if (response.success) {
+        setSentAnnouncements(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to load broadcast history:", error);
+      toast.error("Không thể tải lịch sử gửi thông báo");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleNotificationClick = (notificationId) => {
-    const notification = allNotifications.find((n) => n.id === notificationId);
+    const notification = allNotifications.find((n) => n._id === notificationId);
 
-    if (notification && !notification.read) {
-      const updatedNotifications = allNotifications.map((n) =>
-        n.id === notificationId ? { ...n, read: true } : n
-      );
-      setAllNotifications(updatedNotifications);
-
-      markNotificationAsRead(notificationId).catch((err) => {
-        console.error("Failed to mark notification as read:", err);
-        setAllNotifications(allNotifications); // Khôi phục nếu lỗi
-      });
+    if (notification && !notification.isRead) {
+      markNotificationAsRead(notificationId)
+        .then(() => {
+          const updatedNotifications = allNotifications.map((n) =>
+            n._id === notificationId ? { ...n, isRead: true } : n
+          );
+          setAllNotifications(updatedNotifications);
+        })
+        .catch((err) => {
+          console.error("Failed to mark notification as read:", err);
+        });
     }
   };
 
   const handleMarkAllAsRead = () => {
     setMarkingAsRead(true);
     markAllNotificationsAsRead()
-      .then((updatedNotifications) => {
-        // Sắp xếp lại vì API trả về mảng không theo thứ tự timestamp
-        const sortedData = updatedNotifications.sort(
-          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-        );
-        setAllNotifications(sortedData);
+      .then(() => {
+        const updatedNotifications = allNotifications.map((n) => ({
+          ...n,
+          isRead: true,
+        }));
+        setAllNotifications(updatedNotifications);
+        toast.success("Đã đánh dấu tất cả là đã đọc");
       })
-      .catch((err) => console.error("Failed to mark all as read:", err))
+      .catch((err) => {
+        console.error("Failed to mark all as read:", err);
+        toast.error("Không thể đánh dấu tất cả là đã đọc");
+      })
       .finally(() => setMarkingAsRead(false));
   };
 
@@ -128,36 +156,51 @@ function AllNotifications() {
     setCurrentPage(1); // Reset to first page on filter change
   };
 
-  const handleDeleteNotification = (notificationId) => {
+  const handleDeleteSingleNotification = (notificationId) => {
     // Cập nhật UI trước để có hiệu ứng mượt mà
     const updatedNotifications = allNotifications.filter(
-      (n) => n.id !== notificationId
+      (n) => n._id !== notificationId
     );
     setAllNotifications(updatedNotifications);
 
-    // Gọi API giả
-    deleteNotification(notificationId).catch((err) => {
-      console.error("Failed to delete notification:", err);
-      // Nếu lỗi, có thể khôi phục lại state (tùy vào yêu cầu)
-    });
+    // Gọi API
+    deleteSingleNotification(notificationId)
+      .then(() => {
+        toast.success("Thông báo đã được xóa");
+      })
+      .catch((err) => {
+        console.error("Failed to delete notification:", err);
+        toast.error("Không thể xóa thông báo");
+        // Khôi phục lại nếu lỗi
+        loadNotifications();
+      });
   };
 
   const handleDeleteAll = () => {
-    setAllNotifications([]);
-    deleteAllNotifications().catch((err) => {
-      console.error("Failed to delete all notifications:", err);
-    });
+    deleteAllNotifications()
+      .then(() => {
+        setAllNotifications([]);
+        toast.success("Đã xóa tất cả thông báo");
+      })
+      .catch((err) => {
+        console.error("Failed to delete all notifications:", err);
+        toast.error("Không thể xóa tất cả thông báo");
+      });
   };
   const getNotificationIcon = (type) => {
     switch (type) {
-      case "order":
+      case "order_placed":
         return <Package className="w-5 h-5 text-blue-500" />;
-      case "customer":
-        return <Users className="w-5 h-5 text-green-500" />;
-      case "report":
-        return <BarChart3 className="w-5 h-5 text-purple-500" />;
-      case "inventory":
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
+      case "order_confirmed":
+        return <CheckCheck className="w-5 h-5 text-green-500" />;
+      case "order_shipped":
+        return <Megaphone className="w-5 h-5 text-purple-500" />;
+      case "order_delivered":
+        return <CheckCheck className="w-5 h-5 text-green-600" />;
+      case "order_cancelled":
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
+      case "broadcast":
+        return <Bell className="w-5 h-5 text-yellow-500" />;
       default:
         return <Bell className="w-5 h-5 text-gray-500" />;
     }
@@ -166,10 +209,19 @@ function AllNotifications() {
   const notificationCounts = useMemo(() => {
     return {
       all: allNotifications.length,
-      order: allNotifications.filter((n) => n.type === "order").length,
-      customer: allNotifications.filter((n) => n.type === "customer").length,
-      inventory: allNotifications.filter((n) => n.type === "inventory").length,
-      report: allNotifications.filter((n) => n.type === "report").length,
+      order_placed: allNotifications.filter((n) => n.type === "order_placed")
+        .length,
+      order_confirmed: allNotifications.filter(
+        (n) => n.type === "order_confirmed"
+      ).length,
+      order_shipped: allNotifications.filter((n) => n.type === "order_shipped")
+        .length,
+      order_delivered: allNotifications.filter(
+        (n) => n.type === "order_delivered"
+      ).length,
+      order_cancelled: allNotifications.filter(
+        (n) => n.type === "order_cancelled"
+      ).length,
     };
   }, [allNotifications]);
 
@@ -180,53 +232,62 @@ function AllNotifications() {
 
   const handleSaveAnnouncement = (e) => {
     e.preventDefault();
+
+    // Prevent double submission - check if request already pending
+    if (isSubmitting || isSending || pendingBroadcastRef.current) {
+      console.warn(
+        "Request already in progress, ignoring duplicate submission"
+      );
+      return;
+    }
+
     if (!newAnnouncement.title || !newAnnouncement.message) {
       toast.error("Vui lòng nhập cả tiêu đề và nội dung thông báo.");
       return;
     }
 
-    // Giả lập việc gửi API
-    const promise = new Promise((resolve) => {
-      setTimeout(() => {
-        if (editingAnnouncement) {
-          // Chế độ chỉnh sửa
-          setSentAnnouncements((prev) =>
-            prev.map((item) =>
-              item.id === editingAnnouncement.id
-                ? {
-                    ...item,
-                    title: newAnnouncement.title,
-                    message: newAnnouncement.message,
-                  }
-                : item
-            )
-          );
+    // Generate unique request ID
+    const requestId = `broadcast_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+    pendingBroadcastRef.current = requestId;
+
+    setIsSubmitting(true);
+    setIsSending(true);
+
+    // Gửi thông báo broadcast qua API
+    sendBroadcastNotification(
+      newAnnouncement.title,
+      newAnnouncement.message,
+      newAnnouncement.priority,
+      requestId // Pass requestId to backend
+    )
+      .then((response) => {
+        if (response.success) {
+          toast.success(`Thông báo đã được gửi cho tất cả người dùng!`);
+          // Tải lại lịch sử để đảm bảo dữ liệu mới nhất
+          loadBroadcastHistory();
+
+          // Reset form
+          setNewAnnouncement({ title: "", message: "", priority: "medium" });
+          setEditingAnnouncement(null);
         } else {
-          // Chế độ thêm mới
-          const newSentItem = {
-            id: `ANNOUNCE${Date.now()}`,
-            title: newAnnouncement.title,
-            message: newAnnouncement.message,
-            sentAt: new Date().toISOString(),
-            sentBy: "Admin",
-          };
-          setSentAnnouncements((prev) => [newSentItem, ...prev]);
+          // Hiển thị lỗi từ server nếu có
+          toast.error(
+            response.message || "Không thể gửi thông báo (lỗi không xác định)."
+          );
         }
-
-        // Reset form và state
-        setNewAnnouncement({ title: "", message: "" });
-        setEditingAnnouncement(null);
-        resolve();
-      }, 1000);
-    });
-
-    toast.promise(promise, {
-      loading: "Đang gửi thông báo...",
-      success: editingAnnouncement
-        ? "Thông báo đã được cập nhật!"
-        : "Thông báo đã được gửi thành công!",
-      error: "Gửi thông báo thất bại.",
-    });
+      })
+      .catch((error) => {
+        console.error("Failed to send broadcast:", error);
+        toast.error("Không thể gửi thông báo");
+      })
+      .finally(() => {
+        // Clear pending request
+        pendingBroadcastRef.current = null;
+        setIsSending(false);
+        setIsSubmitting(false);
+      });
   };
 
   const handleDeleteAnnouncementClick = (announcement) => {
@@ -234,27 +295,101 @@ function AllNotifications() {
     setDeleteAnnouncementModalOpen(true);
   };
 
-  const handleConfirmDeleteAnnouncement = () => {
+  const handleConfirmDeleteAnnouncement = async () => {
     if (announcementToDelete) {
-      setSentAnnouncements((prev) =>
-        prev.filter((item) => item.id !== announcementToDelete.id)
-      );
-      toast.success(
-        `Đã xóa thông báo: "${announcementToDelete.title.substring(0, 20)}..."`
-      );
-      setDeleteAnnouncementModalOpen(false);
-      setAnnouncementToDelete(null);
+      try {
+        // Delete from API and MongoDB
+        await deleteBroadcast(announcementToDelete._id);
+
+        setSentAnnouncements((prev) =>
+          prev.filter((item) => item._id !== announcementToDelete._id)
+        );
+        toast.success(
+          `Đã xóa thông báo: "${announcementToDelete.title.substring(
+            0,
+            20
+          )}..."`
+        );
+        setDeleteAnnouncementModalOpen(false);
+        setAnnouncementToDelete(null);
+      } catch (error) {
+        console.error("Failed to delete announcement:", error);
+        toast.error("Không thể xóa thông báo");
+      }
     }
   };
 
   const handleEditAnnouncementClick = (announcement) => {
-    setEditingAnnouncement(announcement);
+    // Populate form with announcement data for editing
     setNewAnnouncement({
       title: announcement.title,
       message: announcement.message,
+      priority: announcement.priority || "medium",
     });
-    // Có thể thêm logic cuộn lên đầu trang để người dùng thấy form
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setEditingAnnouncement(announcement);
+    // Scroll to form
+    document
+      .querySelector(".broadcast-form")
+      ?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAnnouncement(null);
+    setNewAnnouncement({ title: "", message: "", priority: "medium" });
+  };
+
+  const handleSaveEditAnnouncement = async (e) => {
+    e.preventDefault();
+
+    if (!editingAnnouncement || !editingAnnouncement._id) {
+      toast.error("Không tìm thấy thông báo để chỉnh sửa");
+      return;
+    }
+
+    if (!newAnnouncement.title || !newAnnouncement.message) {
+      toast.error("Vui lòng nhập cả tiêu đề và nội dung thông báo.");
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const response = await updateBroadcast(
+        editingAnnouncement._id, // The _id from broadcast history is the idempotencyKey
+        newAnnouncement.title,
+        newAnnouncement.message,
+        newAnnouncement.priority
+      );
+
+      if (response.success) {
+        // Update in local state
+        setSentAnnouncements((prev) =>
+          prev.map((item) =>
+            item._id === editingAnnouncement._id
+              ? {
+                  ...item,
+                  title: newAnnouncement.title,
+                  message: newAnnouncement.message,
+                  priority: newAnnouncement.priority,
+                }
+              : item
+          )
+        );
+
+        toast.success("Thông báo đã được cập nhật!");
+        setEditingAnnouncement(null);
+        setNewAnnouncement({ title: "", message: "", priority: "medium" });
+      } else {
+        toast.error(response.message || "Không thể cập nhật thông báo");
+      }
+    } catch (error) {
+      console.error("Failed to update announcement:", error);
+      toast.error(
+        error.response?.data?.message || "Không thể cập nhật thông báo"
+      );
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleViewDetailClick = (announcement) => {
@@ -264,10 +399,31 @@ function AllNotifications() {
 
   const filterOptions = [
     { value: "all", label: "Tất cả", icon: <Bell size={16} /> },
-    { value: "order", label: "Đơn hàng", icon: <Package size={16} /> },
-    { value: "customer", label: "Khách hàng", icon: <Users size={16} /> },
-    { value: "inventory", label: "Kho", icon: <AlertCircle size={16} /> },
-    { value: "report", label: "Báo cáo", icon: <BarChart3 size={16} /> },
+    {
+      value: "order_placed",
+      label: "Đơn đặt",
+      icon: <Package size={16} />,
+    },
+    {
+      value: "order_confirmed",
+      label: "Xác nhận",
+      icon: <CheckCheck size={16} />,
+    },
+    {
+      value: "order_shipped",
+      label: "Đang giao",
+      icon: <Megaphone size={16} />,
+    },
+    {
+      value: "order_delivered",
+      label: "Đã giao",
+      icon: <CheckCheck size={16} />,
+    },
+    {
+      value: "order_cancelled",
+      label: "Hủy",
+      icon: <AlertCircle size={16} />,
+    },
   ];
 
   // Lọc thông báo trước khi phân trang
@@ -285,7 +441,7 @@ function AllNotifications() {
   );
 
   const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
-  const hasUnread = allNotifications.some((n) => !n.read);
+  const hasUnread = allNotifications.some((n) => !n.isRead);
 
   if (loading) {
     return <Spinner />;
@@ -410,28 +566,31 @@ function AllNotifications() {
                           x: -50,
                           transition: { duration: 0.3 },
                         }}
-                        key={notif.id}
+                        key={notif._id}
                         className={`relative group flex items-start gap-4 p-4 rounded-lg border transition-colors duration-200 ${
-                          notif.read
+                          notif.isRead
                             ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
                             : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
                         }`}
                       >
                         <div
-                          onClick={() => handleNotificationClick(notif.id)}
+                          onClick={() => handleNotificationClick(notif._id)}
                           className={`grow flex items-start gap-4 ${
-                            !notif.read ? "cursor-pointer" : ""
+                            !notif.isRead ? "cursor-pointer" : ""
                           }`}
                         >
                           <div className="shrink-0 mt-1">
                             {getNotificationIcon(notif.type)}
                           </div>
                           <div className="grow">
-                            <p className="text-sm text-gray-800 dark:text-gray-200">
+                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                              {notif.title}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                               {notif.message}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {formatDistanceToNow(new Date(notif.timestamp), {
+                              {formatDistanceToNow(new Date(notif.createdAt), {
                                 addSuffix: true,
                                 locale: vi,
                               })}
@@ -439,7 +598,9 @@ function AllNotifications() {
                           </div>
                         </div>
                         <button
-                          onClick={() => handleDeleteNotification(notif.id)}
+                          onClick={() =>
+                            handleDeleteSingleNotification(notif._id)
+                          }
                           className="absolute top-2 right-2 p-1 rounded-full cursor-pointer text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 opacity-0 group-hover:opacity-100 transition-all"
                         >
                           <Trash2 size={16} />
@@ -493,17 +654,20 @@ function AllNotifications() {
           {activeTab === "broadcast" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Form gửi thông báo */}
-              <div
-                className={`bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 transition-all duration-300 ${
-                  editingAnnouncement ? "ring-2 ring-amber-500" : ""
-                }`}
-              >
+              <div className="broadcast-form bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
                   {editingAnnouncement
                     ? "Chỉnh sửa thông báo"
                     : "Soạn thông báo mới"}
                 </h2>
-                <form onSubmit={handleSaveAnnouncement} className="space-y-4">
+                <form
+                  onSubmit={
+                    editingAnnouncement
+                      ? handleSaveEditAnnouncement
+                      : handleSaveAnnouncement
+                  }
+                  className="space-y-4"
+                >
                   <div>
                     <label
                       htmlFor="announcement-title"
@@ -538,29 +702,53 @@ function AllNotifications() {
                       placeholder="Nhập nội dung bạn muốn gửi đến tất cả người dùng..."
                     ></textarea>
                   </div>
+                  <div>
+                    <label
+                      htmlFor="announcement-priority"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Độ ưu tiên
+                    </label>
+                    <select
+                      id="announcement-priority"
+                      name="priority"
+                      value={newAnnouncement.priority}
+                      onChange={handleAnnouncementChange}
+                      className="mt-1 w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    >
+                      <option value="low">Thấp</option>
+                      <option value="medium">Trung bình</option>
+                      <option value="high">Cao</option>
+                    </select>
+                  </div>
                   <div className="flex justify-end gap-3">
                     {editingAnnouncement && (
                       <button
                         type="button"
-                        onClick={() => {
-                          setEditingAnnouncement(null);
-                          setNewAnnouncement({ title: "", message: "" });
-                        }}
-                        className="px-4 py-2 text-sm font-medium cursor-pointer duration-200 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+                        onClick={handleCancelEdit}
+                        disabled={isSending}
+                        className="px-6 py-2 text-sm font-medium duration-200 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                       >
                         Hủy
                       </button>
                     )}
                     <button
                       type="submit"
-                      className="flex items-center cursor-pointer gap-2 px-6 py-2 text-sm font-medium duration-200 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      disabled={isSending || isSubmitting}
+                      className="flex items-center cursor-pointer gap-2 px-6 py-2 text-sm font-medium duration-200 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                      {editingAnnouncement ? (
+                      {isSending ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : editingAnnouncement ? (
                         <Save size={16} />
                       ) : (
                         <SendHorizonal size={16} />
                       )}
-                      {editingAnnouncement ? "Lưu thay đổi" : "Gửi đi"}
+                      {isSending
+                        ? "Đang xử lý..."
+                        : editingAnnouncement
+                        ? "Cập nhật"
+                        : "Gửi đi"}
                     </button>
                   </div>
                 </form>
@@ -573,54 +761,63 @@ function AllNotifications() {
                 </h2>
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                   <AnimatePresence>
-                    {sentAnnouncements.map((item) => (
-                      <motion.div
-                        layout
-                        key={item.id}
-                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{
-                          opacity: 0,
-                          x: 50,
-                          transition: { duration: 0.2 },
-                        }}
-                        className="relative group p-3 border-l-4 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 rounded-r-md"
-                      >
-                        <div className="pr-8">
-                          <p className="font-semibold text-gray-800 dark:text-gray-200">
-                            {item.title}
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 truncate">
-                            {item.message}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            Gửi bởi {item.sentBy} •{" "}
-                            {formatDistanceToNow(new Date(item.sentAt), {
-                              addSuffix: true,
-                              locale: vi,
-                            })}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleViewDetailClick(item)}
-                          className="absolute top-2 right-[72px] p-1.5 rounded-full cursor-pointer duration-200 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-all"
+                    {sentAnnouncements.length > 0 ? (
+                      sentAnnouncements.map((item) => (
+                        <motion.div
+                          layout
+                          key={item._id}
+                          initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{
+                            opacity: 0,
+                            x: 50,
+                            transition: { duration: 0.2 },
+                          }}
+                          className="relative group p-3 border-l-4 border-amber-300 bg-amber-50 dark:bg-amber-900/20 rounded-r-md"
                         >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleEditAnnouncementClick(item)}
-                          className="absolute top-2 right-10 p-1.5 rounded-full cursor-pointer duration-200 text-gray-400 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/50 opacity-0 group-hover:opacity-100 transition-all"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAnnouncementClick(item)}
-                          className="absolute top-2 right-2 p-1.5 rounded-full cursor-pointer duration-200 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 opacity-0 group-hover:opacity-100 transition-all"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </motion.div>
-                    ))}
+                          <div className="pr-8">
+                            <p className="font-semibold text-gray-800 dark:text-gray-200">
+                              {item.title}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 truncate">
+                              {item.message}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                              Gửi bởi {item.sender_id?.displayName || "Admin"} •{" "}
+                              {formatDistanceToNow(new Date(item.createdAt), {
+                                addSuffix: true,
+                                locale: vi,
+                              })}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleViewDetailClick(item)}
+                            className="absolute top-2 right-[120px] p-1.5 rounded-full cursor-pointer duration-200 text-gray-400 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/50 opacity-0 group-hover:opacity-100 transition-all"
+                            title="Xem chi tiết"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleEditAnnouncementClick(item)}
+                            className="absolute top-2 right-[72px] p-1.5 rounded-full cursor-pointer duration-200 text-gray-400 hover:bg-yellow-100 hover:text-yellow-600 dark:hover:bg-yellow-900/50 opacity-0 group-hover:opacity-100 transition-all"
+                            title="Chỉnh sửa"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAnnouncementClick(item)}
+                            className="absolute top-2 right-2 p-1.5 rounded-full cursor-pointer duration-200 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 opacity-0 group-hover:opacity-100 transition-all"
+                            title="Xóa"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                        Chưa có thông báo nào được gửi
+                      </p>
+                    )}
                   </AnimatePresence>
                 </div>
               </div>
