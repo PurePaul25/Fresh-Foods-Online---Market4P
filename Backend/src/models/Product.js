@@ -11,6 +11,17 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Product price is required'],
     min: [0, 'Price cannot be negative']
   },
+  discount: { // Thêm giảm giá %
+    type: Number,
+    default: 0,
+    min: [0, 'Discount cannot be negative'],
+    max: [100, 'Discount cannot exceed 100']
+  },
+  status: { // Thêm trạng thái sản phẩm
+    type: String,
+    enum: ['Còn hàng', 'Sắp hết hàng', 'Hết hàng'],
+    default: 'Còn hàng'
+  },
   description: {
     type: String,
     trim: true
