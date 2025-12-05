@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useCart } from "../../context/CartContext"
 import {
     Truck,
     CreditCard,
@@ -21,6 +22,7 @@ import {
     Trash2,
     Tag,
 } from "lucide-react"
+import PaymentQR from "../../components/payMentQR"
 
 function useScrollAnimation(threshold = 0.1) {
     const ref = useRef(null)
@@ -50,42 +52,6 @@ function useScrollAnimation(threshold = 0.1) {
     return [ref, isVisible]
 }
 
-// Dữ liệu sản phẩm mẫu
-const initialProducts = [
-    {
-        id: 1,
-        name: "Xoài cát Hòa Lộc",
-        price: 85000,
-        quantity: 2,
-        unit: "kg",
-        image: "/fresh-ripe-mango-fruit.jpg",
-    },
-    {
-        id: 2,
-        name: "Bánh mì nguyên cám",
-        price: 35000,
-        quantity: 3,
-        unit: "ổ",
-        image: "/whole-grain-bread-loaf.jpg",
-    },
-    {
-        id: 3,
-        name: "Rau cải hữu cơ",
-        price: 28000,
-        quantity: 2,
-        unit: "bó",
-        image: "/fresh-organic-bok-choy-vegetables.jpg",
-    },
-    {
-        id: 4,
-        name: "Cà chua Đà Lạt",
-        price: 32000,
-        quantity: 1,
-        unit: "kg",
-        image: "/fresh-red-tomatoes.jpg",
-    },
-]
-
 const shippingOptions = [
     { id: "express", name: "Giao siêu tốc 2h", price: 30000, icon: Clock },
     { id: "standard", name: "Giao tiêu chuẩn", price: 15000, icon: Truck },
@@ -100,12 +66,15 @@ const paymentMethods = [
 ]
 
 export default function CheckoutBody() {
+    const { cartItems, updateQuantity, removeFromCart } = useCart()
+
     const [currentStep, setCurrentStep] = useState(1)
-    const [products, setProducts] = useState(initialProducts)
     const [shippingMethod, setShippingMethod] = useState("express")
     const [paymentMethod, setPaymentMethod] = useState("card")
     const [couponCode, setCouponCode] = useState("")
     const [appliedCoupon, setAppliedCoupon] = useState(null)
+    const [showPaymentQR, setShowPaymentQR] = useState(false)
+    const [orderId, setOrderId] = useState("")
     const [formData, setFormData] = useState({
         fullName: "",
         phone: "",
@@ -119,32 +88,33 @@ export default function CheckoutBody() {
     const [paymentRef, paymentVisible] = useScrollAnimation()
     const [summaryRef, summaryVisible] = useScrollAnimation()
 
-    // Tính toán giá
-    const subtotal = products.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const calculateItemPrice = (item) => {
+        const discountedPrice = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price
+        return discountedPrice * item.quantity
+    }
+
+    const subtotal = cartItems.reduce((sum, item) => sum + calculateItemPrice(item), 0)
     const shippingFee = shippingOptions.find((s) => s.id === shippingMethod)?.price || 0
     const discount = appliedCoupon ? Math.round(subtotal * 0.1) : 0
     const total = subtotal + shippingFee - discount
 
     // Format tiền VND
     const formatPrice = (price) => {
-        return new Intl.NumberFormat("vi-VN").format(price) + "đ"
+        return new Intl.NumberFormat("vi-VN").format(Math.round(price)) + "đ"
     }
 
-    // Xử lý số lượng sản phẩm
-    const updateQuantity = (id, delta) => {
-        setProducts((prev) =>
-            prev.map((item) => {
-                if (item.id === id) {
-                    const newQty = Math.max(1, item.quantity + delta)
-                    return { ...item, quantity: newQty }
-                }
-                return item
-            }),
-        )
+    const handleUpdateQuantity = (id, delta) => {
+        const item = cartItems.find((item) => item.id === id)
+        if (item) {
+            const newQuantity = item.quantity + delta
+            if (newQuantity >= 1) {
+                updateQuantity(id, newQuantity)
+            }
+        }
     }
 
-    const removeProduct = (id) => {
-        setProducts((prev) => prev.filter((item) => item.id !== id))
+    const handleRemoveProduct = (id) => {
+        removeFromCart(id)
     }
 
     // Xử lý mã giảm giá
@@ -159,6 +129,17 @@ export default function CheckoutBody() {
         setFormData((prev) => ({ ...prev, [name]: value }))
     }
 
+    const handleCheckout = () => {
+        const newOrderId = "DH" + Date.now().toString().slice(-8)
+        setOrderId(newOrderId)
+
+        if (paymentMethod === "bank") {
+            setShowPaymentQR(true)
+        } else {
+            alert(`Đặt hàng thành công! Mã đơn hàng: ${newOrderId}`)
+        }
+    }
+
     const steps = [
         { number: 1, title: "Giao hàng" },
         { number: 2, title: "Thanh toán" },
@@ -166,7 +147,7 @@ export default function CheckoutBody() {
     ]
 
     return (
-        <section className="bg-amber-50/30 py-8 min-h-screen">
+        <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">
             <div className="max-w-6xl mx-auto px-4">
                 <div
                     ref={stepsRef}
@@ -249,7 +230,7 @@ export default function CheckoutBody() {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         placeholder="email@example.com"
-                                        className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 hover:border-amber-300"
+                                        className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 resize-none hover:border-amber-300"
                                     />
                                 </div>
                             </div>
@@ -269,7 +250,7 @@ export default function CheckoutBody() {
                                 </div>
                             </div>
 
-                            {/* Shipping Options với animation */}
+                            {/* Shipping Options */}
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-stone-700 mb-3">Phương thức vận chuyển</label>
                                 <div className="grid sm:grid-cols-3 gap-3">
@@ -366,41 +347,10 @@ export default function CheckoutBody() {
                                     )
                                 })}
                             </div>
-
-                            {/* Card Details với animation */}
-                            {paymentMethod === "card" && (
-                                <div className="mt-6 pt-6 border-t border-stone-100 space-y-4 animate-fadeIn">
-                                    <div className="group">
-                                        <label className="block text-sm font-medium text-stone-700 mb-2">Số thẻ</label>
-                                        <input
-                                            type="text"
-                                            placeholder="1234 5678 9012 3456"
-                                            className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 hover:border-amber-300"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="group">
-                                            <label className="block text-sm font-medium text-stone-700 mb-2">Ngày hết hạn</label>
-                                            <input
-                                                type="text"
-                                                placeholder="MM/YY"
-                                                className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 hover:border-amber-300"
-                                            />
-                                        </div>
-                                        <div className="group">
-                                            <label className="block text-sm font-medium text-stone-700 mb-2">CVV</label>
-                                            <input
-                                                type="text"
-                                                placeholder="123"
-                                                className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 hover:border-amber-300"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
 
+                    {/* Right Column - Order Summary */}
                     <div className="lg:col-span-1">
                         <div
                             ref={summaryRef}
@@ -409,43 +359,40 @@ export default function CheckoutBody() {
                         >
                             <h2 className="text-xl font-bold text-stone-800 mb-6">Đơn hàng của bạn</h2>
 
-                            {/* Product List với animation */}
-                            <div className="space-y-4 mb-6">
-                                {products.map((product, index) => (
-                                    <div
-                                        key={product.id}
-                                        className="flex gap-3 transition-all duration-300 hover:bg-amber-50 p-2 rounded-lg -mx-2"
-                                        style={{ animationDelay: `${index * 100}ms` }}
-                                    >
-                                        <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0 transition-transform duration-300 hover:scale-105">
-                                            <img
-                                                src={product.image || "/placeholder.svg"}
-                                                alt={product.name}
-                                                className="object-cover w-full h-full"
-                                            />
-                                        </div>
+                            {/* Cart Items */}
+                            <div className="space-y-4 max-h-64 overflow-y-auto mb-6">
+                                {cartItems.map((item) => (
+                                    <div key={item.id} className="flex gap-3 p-3 bg-stone-50 rounded-xl">
+                                        <img
+                                            src={item.image || "/placeholder.svg"}
+                                            alt={item.name}
+                                            className="w-16 h-16 object-cover rounded-lg"
+                                        />
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="text-sm font-medium text-stone-800 truncate">{product.name}</h4>
-                                            <p className="text-sm text-amber-600 font-semibold">
-                                                {formatPrice(product.price)}/{product.unit}
+                                            <h4 className="font-medium text-stone-800 text-sm truncate">{item.name}</h4>
+                                            <p className="text-amber-600 font-semibold text-sm">
+                                                {item.discount > 0
+                                                    ? formatPrice(item.price * (1 - item.discount / 100))
+                                                    : formatPrice(item.price)}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <button
-                                                    onClick={() => updateQuantity(product.id, -1)}
-                                                    className="w-6 h-6 rounded-full border border-stone-200 flex items-center justify-center hover:bg-amber-100 hover:border-amber-300 transition-all duration-200 active:scale-90"
+                                                    onClick={() => handleUpdateQuantity(item.id, -1)}
+                                                    className="w-6 h-6 rounded-full bg-stone-200 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-colors"
+                                                    disabled={item.quantity <= 1}
                                                 >
-                                                    <Minus className="w-3 h-3 text-stone-600" />
+                                                    <Minus className="w-3 h-3" />
                                                 </button>
-                                                <span className="text-sm font-medium text-stone-800 w-6 text-center">{product.quantity}</span>
+                                                <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
                                                 <button
-                                                    onClick={() => updateQuantity(product.id, 1)}
-                                                    className="w-6 h-6 rounded-full border border-stone-200 flex items-center justify-center hover:bg-amber-100 hover:border-amber-300 transition-all duration-200 active:scale-90"
+                                                    onClick={() => handleUpdateQuantity(item.id, 1)}
+                                                    className="w-6 h-6 rounded-full bg-stone-200 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-colors"
                                                 >
-                                                    <Plus className="w-3 h-3 text-stone-600" />
+                                                    <Plus className="w-3 h-3" />
                                                 </button>
                                                 <button
-                                                    onClick={() => removeProduct(product.id)}
-                                                    className="ml-auto text-stone-400 hover:text-red-500 transition-all duration-200 hover:scale-110"
+                                                    onClick={() => handleRemoveProduct(item.id)}
+                                                    className="ml-auto text-red-500 hover:text-red-600"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -455,83 +402,77 @@ export default function CheckoutBody() {
                                 ))}
                             </div>
 
-                            {/* Coupon Code */}
+                            {/* Coupon */}
                             <div className="mb-6">
                                 <div className="flex gap-2">
-                                    <div className="relative flex-1 group">
-                                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 transition-colors group-focus-within:text-amber-600" />
+                                    <div className="relative flex-1">
+                                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                                         <input
                                             type="text"
                                             value={couponCode}
                                             onChange={(e) => setCouponCode(e.target.value)}
                                             placeholder="Mã giảm giá"
-                                            className="w-full pl-9 pr-4 py-2.5 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300 hover:border-amber-300"
+                                            className="w-full pl-9 pr-4 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                                         />
                                     </div>
                                     <button
                                         onClick={applyCoupon}
-                                        className="px-4 py-2.5 bg-amber-600 text-white text-sm font-medium rounded-xl hover:bg-amber-700 transition-all duration-300 hover:scale-105 active:scale-95"
+                                        className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors"
                                     >
                                         Áp dụng
                                     </button>
                                 </div>
-                                {appliedCoupon && (
-                                    <p className="text-sm text-green-600 mt-2 flex items-center gap-1 animate-fadeIn">
-                                        <Check className="w-4 h-4" />
-                                        Đã áp dụng mã {appliedCoupon} - Giảm 10%
-                                    </p>
-                                )}
-                                <p className="text-xs text-stone-500 mt-2">Thử mã: FRESH10</p>
+                                {appliedCoupon && <p className="text-green-600 text-xs mt-2">✓ Đã áp dụng mã {appliedCoupon}</p>}
                             </div>
 
                             {/* Price Summary */}
-                            <div className="space-y-3 py-4 border-t border-stone-100">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-stone-600">Tạm tính</span>
-                                    <span className="text-stone-800 font-medium">{formatPrice(subtotal)}</span>
+                            <div className="space-y-3 border-t border-stone-100 pt-4">
+                                <div className="flex justify-between text-sm text-stone-600">
+                                    <span>Tạm tính</span>
+                                    <span>{formatPrice(subtotal)}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-stone-600">Phí vận chuyển</span>
-                                    <span className="text-stone-800 font-medium">{formatPrice(shippingFee)}</span>
+                                <div className="flex justify-between text-sm text-stone-600">
+                                    <span>Phí vận chuyển</span>
+                                    <span>{formatPrice(shippingFee)}</span>
                                 </div>
-                                {discount > 0 && (
-                                    <div className="flex justify-between text-sm animate-fadeIn">
-                                        <span className="text-green-600">Giảm giá</span>
-                                        <span className="text-green-600 font-medium">-{formatPrice(discount)}</span>
+                                {appliedCoupon && (
+                                    <div className="flex justify-between text-sm text-green-600">
+                                        <span>Giảm giá</span>
+                                        <span>-{formatPrice(discount)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between pt-3 border-t border-stone-100">
-                                    <span className="text-lg font-bold text-stone-800">Tổng cộng</span>
-                                    <span className="text-xl font-bold text-amber-600">{formatPrice(total)}</span>
+                                <div className="flex justify-between text-lg font-bold text-stone-800 border-t border-stone-100 pt-3">
+                                    <span>Tổng cộng</span>
+                                    <span className="text-amber-600">{formatPrice(total)}</span>
                                 </div>
                             </div>
 
                             {/* Checkout Button */}
-                            <button className="w-full py-4 bg-amber-600 text-white font-semibold rounded-xl hover:bg-amber-700 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]">
-                                <ShieldCheck className="w-5 h-5" />
-                                Đặt hàng ngay
+                            <button
+                                onClick={handleCheckout}
+                                className="w-full mt-6 py-4 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
+                            >
+                                Đặt hàng
+                                <ChevronRight className="w-5 h-5" />
                             </button>
 
                             {/* Trust Badges */}
-                            <div className="mt-6 pt-6 border-t border-stone-100">
-                                <div className="grid grid-cols-2 gap-3">
-                                    {[
-                                        { icon: ShieldCheck, text: "100% Tươi sạch" },
-                                        { icon: Snowflake, text: "Bảo quản lạnh" },
-                                        { icon: Truck, text: "Giao siêu tốc" },
-                                        { icon: RotateCcw, text: "Đổi trả 24h" },
-                                    ].map((badge, index) => {
-                                        const Icon = badge.icon
-                                        return (
-                                            <div
-                                                key={index}
-                                                className="flex items-center gap-2 text-sm text-stone-600 transition-all duration-300 hover:text-amber-600 cursor-default"
-                                            >
-                                                <Icon className="w-4 h-4 text-amber-600" />
-                                                <span>{badge.text}</span>
-                                            </div>
-                                        )
-                                    })}
+                            <div className="mt-6 grid grid-cols-2 gap-3">
+                                <div className="flex items-center gap-2 text-xs text-stone-500">
+                                    <ShieldCheck className="w-4 h-4 text-green-500" />
+                                    <span>Thanh toán an toàn</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-stone-500">
+                                    <Snowflake className="w-4 h-4 text-blue-500" />
+                                    <span>Bảo quản lạnh</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-stone-500">
+                                    <Clock className="w-4 h-4 text-amber-500" />
+                                    <span>Giao hàng nhanh</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-stone-500">
+                                    <RotateCcw className="w-4 h-4 text-purple-500" />
+                                    <span>Đổi trả dễ dàng</span>
                                 </div>
                             </div>
                         </div>
@@ -539,21 +480,8 @@ export default function CheckoutBody() {
                 </div>
             </div>
 
-            <style jsx>{`
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.4s ease-out forwards;
-                }
-            `}</style>
-        </section>
+            {/* Payment QR Modal */}
+            {showPaymentQR && <PaymentQR orderId={orderId} amount={total} onClose={() => setShowPaymentQR(false)} />}
+        </div>
     )
 }

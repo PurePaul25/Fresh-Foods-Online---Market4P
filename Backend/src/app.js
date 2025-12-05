@@ -14,6 +14,7 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentRoutes from "./routes/payment.js";
 import { protectedRoute } from './middlewares/authMiddleware.js';
 
 const app = express();
@@ -51,8 +52,8 @@ if (process.env.NODE_ENV === 'development') {
 
 // Health check
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    success: true, 
+  res.status(200).json({
+    success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString()
   });
@@ -71,6 +72,7 @@ app.use('/api/products', reviewRoutes); // /products/:id/reviews
 app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/admin', adminRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

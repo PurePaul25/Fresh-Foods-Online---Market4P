@@ -3,7 +3,7 @@
 import PromoCountdown from "../../components/PromoCountdown/PromoCountdown";
 
 import { useEffect, useRef, useState } from "react";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button/Button";
 import Cate_Fruits from "../../assets/images/cate_fruits.avif";
@@ -66,243 +66,301 @@ function Shop() {
     { id: "bread", name: "Bánh mì", image: Cate_Bread },
   ];
 
+  let idCounter = 1;
+
   const categoryProducts = {
     fruits: [
       {
+        id: idCounter++,
         name: "Xoài cát Hòa Lộc",
-        price: "65.000",
+        price: 65000,
         unit: "kg",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Nho xanh Ninh Thuận",
-        price: "85.000",
+        price: 85000,
         unit: "kg",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Dâu tây Đà Lạt",
-        price: "120.000",
+        price: 120000,
         unit: "hộp",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Bưởi da xanh",
-        price: "45.000",
+        price: 45000,
         unit: "quả",
         image: BongCaiXanh,
       },
-      { name: "Cam sành", price: "35.000", unit: "kg", image: BongCaiXanh },
       {
-        name: "Táo Fuji nhập khẩu",
-        price: "95.000",
+        id: idCounter++,
+        name: "Cam sành",
+        price: 35000,
         unit: "kg",
         image: BongCaiXanh,
       },
+      {
+        id: idCounter++,
+        name: "Táo Fuji nhập khẩu",
+        price: 95000,
+        unit: "kg",
+        image: BongCaiXanh,
+      }
     ],
+
     eggs: [
       {
+        id: idCounter++,
         name: "Trứng gà ta",
-        price: "45.000",
+        price: 45000,
         unit: "vỉ 10 quả",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Trứng gà công nghiệp",
-        price: "32.000",
+        price: 32000,
         unit: "vỉ 10 quả",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Trứng vịt",
-        price: "38.000",
+        price: 38000,
         unit: "vỉ 10 quả",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Trứng cút",
-        price: "25.000",
+        price: 25000,
         unit: "vỉ 20 quả",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Trứng gà ác",
-        price: "55.000",
+        price: 55000,
         unit: "vỉ 10 quả",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Trứng vịt lộn",
-        price: "8.000",
+        price: 8000,
         unit: "quả",
         image: BongCaiXanh,
       },
     ],
+
     meat: [
       {
+        id: idCounter++,
         name: "Thịt bò Wagyu",
-        price: "985.000",
+        price: 985000,
         unit: "kg",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Sườn cốt lết",
-        price: "185.000",
+        price: 185000,
         unit: "kg",
         image: BongCaiXanh,
       },
-      { name: "Ba chỉ heo", price: "145.000", unit: "kg", image: BongCaiXanh },
-      { name: "Ức gà", price: "95.000", unit: "kg", image: BongCaiXanh },
-      { name: "Đùi gà", price: "85.000", unit: "kg", image: BongCaiXanh },
       {
+        id: idCounter++,
+        name: "Ba chỉ heo",
+        price: 145000,
+        unit: "kg",
+        image: BongCaiXanh,
+      },
+      {
+        id: idCounter++,
+        name: "Ức gà",
+        price: 95000,
+        unit: "kg",
+        image: BongCaiXanh,
+      },
+      {
+        id: idCounter++,
+        name: "Đùi gà",
+        price: 85000,
+        unit: "kg",
+        image: BongCaiXanh,
+      },
+      {
+        id: idCounter++,
         name: "Thịt heo xay",
-        price: "125.000",
+        price: 125000,
         unit: "kg",
         image: BongCaiXanh,
       },
     ],
+
     vegetables: [
       {
+        id: idCounter++,
         name: "Bông cải xanh",
-        price: "85.000",
+        price: 85000,
         unit: "kg",
         image: BongCaiXanh,
       },
-      { name: "Cà rốt", price: "35.000", unit: "kg", image: BongCaiXanh },
-      { name: "Rau muống", price: "15.000", unit: "bó", image: BongCaiXanh },
-      { name: "Cải thìa", price: "25.000", unit: "kg", image: BongCaiXanh },
-      { name: "Bí đỏ", price: "28.000", unit: "kg", image: BongCaiXanh },
-      { name: "Dưa leo", price: "20.000", unit: "kg", image: BongCaiXanh },
+      {
+        id: idCounter++,
+        name: "Cà rốt",
+        price: 35000,
+        unit: "kg",
+        image: BongCaiXanh,
+      },
+      {
+        id: idCounter++,
+        name: "Rau muống",
+        price: 15000,
+        unit: "bó",
+        image: BongCaiXanh,
+      },
+      {
+        id: idCounter++,
+        name: "Cải thìa",
+        price: 25000,
+        unit: "kg",
+        image: BongCaiXanh,
+      },
+      {
+        id: idCounter++,
+        name: "Bí đỏ",
+        price: 28000,
+        unit: "kg",
+        image: BongCaiXanh,
+      },
+      {
+        id: idCounter++,
+        name: "Dưa leo",
+        price: 20000,
+        unit: "kg",
+        image: BongCaiXanh,
+      },
     ],
+
     bread: [
       {
+        id: idCounter++,
         name: "Bánh mì lúa mạch",
-        price: "45.000",
+        price: 45000,
         unit: "ổ",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Bánh mì sandwich",
-        price: "35.000",
+        price: 35000,
         unit: "gói",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Bánh mì baguette",
-        price: "25.000",
+        price: 25000,
         unit: "ổ",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Bánh mì ngọt",
-        price: "18.000",
+        price: 18000,
         unit: "cái",
         image: BongCaiXanh,
       },
       {
+        id: idCounter++,
         name: "Bánh croissant",
-        price: "28.000",
+        price: 28000,
         unit: "cái",
         image: BongCaiXanh,
       },
-      { name: "Bánh mì tươi", price: "5.000", unit: "ổ", image: BongCaiXanh },
+      {
+        id: idCounter++,
+        name: "Bánh mì tươi",
+        price: 5000,
+        unit: "ổ",
+        image: BongCaiXanh,
+      },
     ],
   };
 
+
   const saleProducts = [
     {
+      id: idCounter++,
       name: "Thịt bò Úc",
-      price: "320.000",
-      originalPrice: "450.000",
+      price: 320000,
+      originalPrice: 450000,
       discount: 30,
       image: BongCaiXanh,
       hot: true,
     },
     {
+      id: idCounter++,
       name: "Rau cải xanh",
-      price: "18.000",
-      originalPrice: "25.000",
+      price: 18000,
+      originalPrice: 25000,
       discount: 28,
       image: BongCaiXanh,
     },
     {
+      id: idCounter++,
       name: "Trứng gà omega",
-      price: "42.000",
-      originalPrice: "55.000",
+      price: 42000,
+      originalPrice: 55000,
       discount: 24,
       image: BongCaiXanh,
     },
     {
+      id: idCounter++,
       name: "Bánh mì tươi",
-      price: "12.000",
-      originalPrice: "18.000",
+      price: 12000,
+      originalPrice: 18000,
       discount: 33,
       image: BongCaiXanh,
       hot: true,
     },
     {
+      id: idCounter++,
       name: "Cam Vinh",
-      price: "45.000",
-      originalPrice: "60.000",
+      price: 45000,
+      originalPrice: 60000,
       discount: 25,
       image: BongCaiXanh,
     },
   ];
 
   const bestSelling = [
-    { name: "Bông cải xanh", price: "85.000", discount: 8, image: BongCaiXanh },
-    { name: "Thịt bò Wagyu", price: "985.000", discount: 8, image: BoWagyu },
-    { name: "Sườn cốt lết", price: "185.000", discount: 8, image: SuonCotLet },
-    { name: "Cà rốt", price: "55.000", discount: 8, image: Carrot },
-    {
-      name: "Bánh mì lúa mạch",
-      price: "45.000",
-      discount: 8,
-      image: BanhMiLuaMach,
-    },
-    {
-      name: "Bánh mì lúa mạch",
-      price: "45.000",
-      discount: 8,
-      image: BanhMiLuaMach,
-    },
-    { name: "Cà rốt", price: "985.000", discount: 8, image: Carrot },
-    { name: "Bông cải xanh", price: "85.000", discount: 8, image: BongCaiXanh },
-    { name: "Thịt bò Wagyu", price: "985.000", discount: 8, image: BoWagyu },
-    { name: "Sườn cốt lết", price: "185.000", discount: 8, image: SuonCotLet },
+    { id: idCounter++, name: "Bông cải xanh", price: 85000, discount: 8, image: BongCaiXanh },
+    { id: idCounter++, name: "Thịt bò Wagyu", price: 985000, discount: 8, image: BoWagyu },
+    { id: idCounter++, name: "Sườn cốt lết", price: 185000, discount: 8, image: SuonCotLet },
+    { id: idCounter++, name: "Cà rốt", price: 55000, discount: 8, image: Carrot },
+    { id: idCounter++, name: "Bánh mì lúa mạch", price: 45000, discount: 8, image: BanhMiLuaMach },
+    { id: idCounter++, name: "Bánh mì lúa mạch", price: 45000, discount: 8, image: BanhMiLuaMach },
+    { id: idCounter++, name: "Cà rốt", price: 985000, discount: 8, image: Carrot },
+    { id: idCounter++, name: "Bông cải xanh", price: 85000, discount: 8, image: BongCaiXanh },
+    { id: idCounter++, name: "Thịt bò Wagyu", price: 985000, discount: 8, image: BoWagyu },
+    { id: idCounter++, name: "Sườn cốt lết", price: 185000, discount: 8, image: SuonCotLet },
   ];
 
+
   const newArrivals = [
-    {
-      name: "Bánh mì sandwich",
-      price: "85.000",
-      discount: 8,
-      image: BanhMiSandwich,
-    },
-    {
-      name: "Bánh mì sandwich",
-      price: "85.000",
-      discount: 8,
-      image: BanhMiSandwich,
-    },
-    {
-      name: "Bánh mì sandwich",
-      price: "85.000",
-      discount: 8,
-      image: BanhMiSandwich,
-    },
-    {
-      name: "Bánh mì sandwich",
-      price: "85.000",
-      discount: 8,
-      image: BanhMiSandwich,
-    },
-    {
-      name: "Bánh mì sandwich",
-      price: "85.000",
-      discount: 8,
-      image: BanhMiSandwich,
-    },
+    { id: idCounter++, name: "Bánh mì sandwich", price: 85000, discount: 8, image: BanhMiSandwich },
+    { id: idCounter++, name: "Bánh mì sandwich", price: 85000, discount: 8, image: BanhMiSandwich },
+    { id: idCounter++, name: "Bánh mì sandwich", price: 85000, discount: 8, image: BanhMiSandwich },
+    { id: idCounter++, name: "Bánh mì sandwich", price: 85000, discount: 8, image: BanhMiSandwich },
+    { id: idCounter++, name: "Bánh mì sandwich", price: 85000, discount: 8, image: BanhMiSandwich },
   ];
 
   const handleCategoryClick = (categoryId) => {
@@ -337,16 +395,16 @@ function Shop() {
           <div className="relative  max-w-4xl">
             <span
               className={`inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-4 transition-all duration-700 ${heroVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-4"
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
                 }`}
             >
               Ưu đãi đặc biệt hôm nay
             </span>
             <h1
               className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 transition-all duration-700 delay-100 ${heroVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-4"
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
                 }`}
             >
               Thực phẩm tươi sạch
@@ -355,8 +413,8 @@ function Shop() {
             </h1>
             <p
               className={`text-white/90 text-lg md:text-xl mb-8 max-w-2xl transition-all duration-700 delay-200 ${heroVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-4"
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
                 }`}
             >
               Chọn ngay những sản phẩm tươi ngon nhất với giá ưu đãi. Giao hàng
@@ -364,8 +422,8 @@ function Shop() {
             </p>
             <div
               className={`flex flex-wrap gap-4 transition-all duration-700 delay-300 ${heroVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-4"
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
                 }`}
             >
               <button className="bg-white text-amber-600 px-8 py-3 rounded-full font-semibold hover:bg-amber-50 hover:scale-105 transition-all duration-300 shadow-lg">
@@ -381,8 +439,8 @@ function Shop() {
           <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden lg:block">
             <div
               className={`transition-all duration-1000 delay-500 ${heroVisible
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 translate-x-20"
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 translate-x-20"
                 }`}
             >
               <img
@@ -398,8 +456,8 @@ function Shop() {
         <section ref={categoryRef} className="px-6 md:px-16 lg:px-30 py-12">
           <h2
             className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${categoryVisible
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-10"
+              ? "opacity-100 translate-x-0"
+              : "opacity-0 -translate-x-10"
               }`}
           >
             Danh mục sản phẩm
@@ -415,8 +473,8 @@ function Shop() {
                 key={index}
                 onClick={() => handleCategoryClick(cat.id)}
                 className={`group cursor-pointer transition-all duration-500 ease-out ${categoryVisible
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 translate-y-10"
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
                   }`}
                 style={{ transitionDelay: `${index * 100 + 200}ms` }}
               >
@@ -444,8 +502,8 @@ function Shop() {
             <div className="flex items-center gap-3">
               <h2
                 className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${saleVisible
-                    ? "opacity-100 translate-x-0"
-                    : "opacity-0 -translate-x-10"
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 -translate-x-10"
                   }`}
               >
                 Đang giảm giá
@@ -462,8 +520,8 @@ function Shop() {
             {/* Countdown timer */}
             <div
               className={`flex items-center gap-2 bg-white rounded-full px-6 py-3 shadow-md transition-all duration-700 delay-200 ${saleVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-4"
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
                 }`}
             >
               <span className="text-gray-600 text-sm">Kết thúc sau:</span>
@@ -488,8 +546,8 @@ function Shop() {
               <div
                 key={index}
                 className={`group bg-white rounded-2xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden border-2 border-red-100 hover:border-red-300 ${saleVisible
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-12 scale-95"
+                  ? "opacity-100 translate-y-0 scale-100"
+                  : "opacity-0 translate-y-12 scale-95"
                   }`}
                 style={{ transitionDelay: `${index * 100 + 200}ms` }}
               >
@@ -551,8 +609,8 @@ function Shop() {
         >
           <h2
             className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${bestSellingVisible
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-10"
+              ? "opacity-100 translate-x-0"
+              : "opacity-0 -translate-x-10"
               }`}
           >
             Sản phẩm bán chạy
@@ -564,8 +622,8 @@ function Shop() {
               <div
                 key={index}
                 className={`group bg-white rounded-xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden ${bestSellingVisible
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-12 scale-95"
+                  ? "opacity-100 translate-y-0 scale-100"
+                  : "opacity-0 translate-y-12 scale-95"
                   }`}
                 style={{ transitionDelay: `${(index % 5) * 80 + 200}ms` }}
               >
@@ -609,8 +667,8 @@ function Shop() {
           <div className="flex items-center gap-3">
             <h2
               className={`text-3xl font-bold text-gray-800 relative inline-block transition-all duration-700 ease-out ${newArrivalsVisible
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-10"
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-10"
                 }`}
             >
               Hàng vừa mới đến
@@ -629,8 +687,8 @@ function Shop() {
               <div
                 key={index}
                 className={`group bg-white rounded-xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-amber-200 ${newArrivalsVisible
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-12 scale-95"
+                  ? "opacity-100 translate-y-0 scale-100"
+                  : "opacity-0 translate-y-12 scale-95"
                   }`}
                 style={{ transitionDelay: `${index * 100 + 200}ms` }}
               >
@@ -773,7 +831,7 @@ function Shop() {
       )}
 
       {/* Custom styles for animations */}
-      <style jsx>{`
+      <style >{`
         @keyframes float {
           0%,
           100% {

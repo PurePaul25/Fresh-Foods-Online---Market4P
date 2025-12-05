@@ -50,9 +50,9 @@ function Home() {
     const [promoRef, promoVisible] = useScrollAnimation()
 
     const products = [
-        { name: "Dâu tây", price: "165.000 vnđ", image: berry },
-        { name: "Nho", price: "125.000 vnđ", image: strawberry },
-        { name: "Chanh", price: "45.000 vnđ", image: lemon },
+        { id: 1, name: "Dâu tây", price: 165000, image: berry },
+        { id: 2, name: "Nho", price: 125000, image: strawberry },
+        { id: 3, name: "Chanh", price: 45000, image: lemon },
     ]
 
     const services = [
@@ -168,7 +168,14 @@ function Home() {
                                     <p className="my-3">Per Kg</p>
                                     <p className="text-2xl font-bold text-amber-600">{product.price}</p>
                                 </div>
-                                <Button />
+                                <div className='flex justify-center'>
+                                    <NavLink
+                                        to="/shop"
+                                        className="bg-amber-600 py-2 mt-1 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+                                    >
+                                        Đi đến cửa hàng
+                                    </NavLink>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -214,6 +221,14 @@ function Home() {
                             </p>
                         </div>
                         <PromoCountdown />
+                        <div className='mt-7'>
+                            <NavLink
+                                to="/shop"
+                                className="bg-amber-600 py-2 mt-1 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+                            >
+                                Đi đến cửa hàng
+                            </NavLink>
+                        </div>
                     </div>
                 </div>
             </div>

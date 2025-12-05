@@ -2,13 +2,11 @@
 
 import { useEffect, useRef, useState } from "react"
 import { NavLink } from "react-router-dom"
-import Navbar from "../../components/navbar"
+import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
 import BongCaiXanh from "../../assets/images/bongcaixanh.png"
-import BoWagyu from "../../assets/images/bowagyu.avif"
-import BanhMiLuaMach from "../../assets/images/banhmiluamach.avif"
-import Carrot from "../../assets/images/carrot.avif"
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, Truck, Shield, Gift, ChevronRight } from "lucide-react"
+import { useCart } from "../../context/CartContext"
 
 function useScrollAnimation(threshold = 0.1) {
     const ref = useRef(null)
@@ -40,16 +38,10 @@ function useScrollAnimation(threshold = 0.1) {
 }
 
 function Cart() {
+    const { cartItems, updateQuantity, removeFromCart } = useCart()
     const [headerRef, headerVisible] = useScrollAnimation()
     const [cartRef, cartVisible] = useScrollAnimation()
     const [suggestRef, suggestVisible] = useScrollAnimation()
-
-    const [cartItems, setCartItems] = useState([
-        { id: 1, name: "Bông cải xanh hữu cơ", price: 85000, quantity: 2, unit: "kg", image: BongCaiXanh, discount: 10 },
-        { id: 2, name: "Thịt bò Wagyu A5", price: 985000, quantity: 1, unit: "kg", image: BoWagyu, discount: 0 },
-        { id: 3, name: "Bánh mì lúa mạch", price: 45000, quantity: 3, unit: "ổ", image: BanhMiLuaMach, discount: 15 },
-        { id: 4, name: "Cà rốt Đà Lạt", price: 35000, quantity: 2, unit: "kg", image: Carrot, discount: 0 },
-    ])
 
     const [couponCode, setCouponCode] = useState("")
     const [appliedCoupon, setAppliedCoupon] = useState(null)
@@ -62,27 +54,12 @@ function Cart() {
         { id: 8, name: "Dưa leo", price: 20000, unit: "kg", image: BongCaiXanh },
     ]
 
-    const updateQuantity = (id, delta) => {
-        setCartItems((items) =>
-            items.map((item) => (item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item)),
-        )
-    }
-
     const removeItem = (id) => {
         setRemovingId(id)
         setTimeout(() => {
-            setCartItems((items) => items.filter((item) => item.id !== id))
+            removeFromCart(id)
             setRemovingId(null)
         }, 300)
-    }
-
-    const addToCart = (product) => {
-        const existing = cartItems.find((item) => item.id === product.id)
-        if (existing) {
-            updateQuantity(product.id, 1)
-        } else {
-            setCartItems([...cartItems, { ...product, quantity: 1, discount: 0 }])
-        }
     }
 
     const applyCoupon = () => {
@@ -105,6 +82,16 @@ function Cart() {
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat("vi-VN").format(Math.round(price))
+    }
+
+    const handleIncreaseQuantity = (item) => {
+        updateQuantity(item.id, item.quantity + 1)
+    }
+
+    const handleDecreaseQuantity = (item) => {
+        if (item.quantity > 1) {
+            updateQuantity(item.id, item.quantity - 1)
+        }
     }
 
     return (
@@ -205,8 +192,8 @@ function Cart() {
                                             </div>
 
                                             {/* Product Image */}
-                                            <div className="relative flex-shrink-0">
-                                                <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden group">
+                                            <div className="relative shrink-0">
+                                                <div className="w-24 h-24 md:w-32 md:h-32 bg-linear-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden group">
                                                     <img
                                                         src={item.image || "/placeholder.svg"}
                                                         alt={item.name}
@@ -227,7 +214,7 @@ function Cart() {
                                                 </h3>
                                                 <p className="text-gray-400 text-sm mt-1">Đơn vị: {item.unit}</p>
 
-                                                {/* Price */}
+                                                {/* Price - Hiển thị giá gốc và giá giảm đúng */}
                                                 <div className="mt-2 flex items-center gap-2 flex-wrap">
                                                     {item.discount > 0 ? (
                                                         <>
@@ -243,10 +230,10 @@ function Cart() {
 
                                                 {/* Quantity & Actions */}
                                                 <div className="mt-4 flex items-center justify-between flex-wrap gap-4">
-                                                    {/* Quantity Control */}
+                                                    {/* Quantity Control - Sửa onClick để gọi đúng hàm */}
                                                     <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
                                                         <button
-                                                            onClick={() => updateQuantity(item.id, -1)}
+                                                            onClick={() => handleDecreaseQuantity(item)}
                                                             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-amber-500 hover:text-white transition-all duration-200 disabled:opacity-50"
                                                             disabled={item.quantity <= 1}
                                                         >
@@ -254,7 +241,7 @@ function Cart() {
                                                         </button>
                                                         <span className="w-12 text-center font-semibold text-gray-800">{item.quantity}</span>
                                                         <button
-                                                            onClick={() => updateQuantity(item.id, 1)}
+                                                            onClick={() => handleIncreaseQuantity(item)}
                                                             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-amber-500 hover:text-white transition-all duration-200"
                                                         >
                                                             <Plus size={16} />
@@ -340,40 +327,24 @@ function Cart() {
                                         </div>
                                     </div>
 
-                                    {/* Free Shipping Progress */}
-                                    {subtotal < 500000 && (
-                                        <div className="mt-4 p-3 bg-amber-50 rounded-lg">
-                                            <p className="text-sm text-amber-700">
-                                                Mua thêm <span className="font-bold">{formatPrice(500000 - subtotal)}đ</span> để được{" "}
-                                                <span className="font-bold">miễn phí vận chuyển</span>
-                                            </p>
-                                            <div className="mt-2 h-2 bg-amber-200 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-amber-500 rounded-full transition-all duration-500"
-                                                    style={{ width: `${Math.min((subtotal / 500000) * 100, 100)}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {/* Checkout Button */}
                                     <NavLink
                                         to="/checkout"
-                                        className="mt-6 w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:from-amber-600 hover:to-amber-700 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-200 group"
+                                        className="mt-6 w-full bg-amber-600 text-white py-4 rounded-xl font-semibold hover:bg-amber-700 hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-amber-200 flex items-center justify-center gap-2"
                                     >
                                         Tiến hành thanh toán
-                                        <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform duration-300" />
+                                        <ChevronRight size={20} />
                                     </NavLink>
 
-                                    {/* Trust Badges */}
-                                    <div className="mt-6 grid grid-cols-2 gap-3">
-                                        <div className="flex items-center gap-2 text-gray-500 text-xs">
-                                            <Truck size={16} className="text-amber-600" />
-                                            <span>Giao hàng nhanh 2h</span>
+                                    {/* Trust badges */}
+                                    <div className="mt-6 flex items-center justify-center gap-4 text-gray-400 text-xs">
+                                        <div className="flex items-center gap-1">
+                                            <Shield size={14} />
+                                            <span>Bảo mật</span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-gray-500 text-xs">
-                                            <Shield size={16} className="text-amber-600" />
-                                            <span>Thanh toán an toàn</span>
+                                        <div className="flex items-center gap-1">
+                                            <Truck size={14} />
+                                            <span>Giao nhanh</span>
                                         </div>
                                     </div>
                                 </div>
@@ -386,40 +357,26 @@ function Cart() {
                 {cartItems.length > 0 && (
                     <section ref={suggestRef} className="px-6 md:px-16 lg:px-30 py-12 mt-8">
                         <h2
-                            className={`text-2xl font-bold text-gray-800 mb-8 relative inline-block transition-all duration-700 ${suggestVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`}
+                            className={`text-2xl font-bold text-gray-800 mb-6 transition-all duration-700 ${suggestVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
                         >
                             Có thể bạn cũng thích
-                            <span className="absolute -bottom-2 left-0 w-16 h-1 bg-amber-600 rounded-full"></span>
                         </h2>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             {suggestedProducts.map((product, index) => (
                                 <div
                                     key={product.id}
-                                    className={`group bg-white rounded-xl shadow-md p-4 transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer ${suggestVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-                                    style={{ transitionDelay: `${index * 100 + 200}ms` }}
+                                    className={`bg-white rounded-xl shadow-md p-4 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 cursor-pointer ${suggestVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                                    style={{ transitionDelay: `${index * 100}ms` }}
                                 >
-                                    <div className="bg-gray-50 rounded-lg p-4 overflow-hidden">
-                                        <img
-                                            src={product.image || "/placeholder.svg"}
-                                            alt={product.name}
-                                            className="w-full h-32 object-contain transition-transform duration-500 group-hover:scale-110"
-                                        />
-                                    </div>
-                                    <div className="mt-4">
-                                        <h3 className="font-medium text-gray-800 group-hover:text-amber-600 transition-colors duration-200 line-clamp-1">
-                                            {product.name}
-                                        </h3>
-                                        <p className="text-amber-600 font-bold mt-1">
-                                            {formatPrice(product.price)}đ/{product.unit}
-                                        </p>
-                                        <button
-                                            onClick={() => addToCart(product)}
-                                            className="mt-3 w-full py-2 border-2 border-amber-600 text-amber-600 rounded-lg font-medium hover:bg-amber-600 hover:text-white transition-all duration-300 text-sm"
-                                        >
-                                            Thêm vào giỏ
-                                        </button>
-                                    </div>
+                                    <img
+                                        src={product.image || "/placeholder.svg"}
+                                        alt={product.name}
+                                        className="w-full h-32 object-contain rounded-lg"
+                                    />
+                                    <h3 className="mt-3 font-medium text-gray-800">{product.name}</h3>
+                                    <p className="text-amber-600 font-bold mt-1">
+                                        {formatPrice(product.price)}đ/{product.unit}
+                                    </p>
                                 </div>
                             ))}
                         </div>
@@ -427,20 +384,7 @@ function Cart() {
                 )}
             </div>
 
-            <footer>
-                <Footer />
-            </footer>
-
-            {/* Float animation keyframes */}
-            <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
+            <Footer />
         </main>
     )
 }

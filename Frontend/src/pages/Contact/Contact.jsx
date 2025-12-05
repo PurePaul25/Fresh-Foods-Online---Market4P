@@ -1,4 +1,4 @@
-import Navbar from "../../components/navbar"
+import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
 import { Clock, Map, MapPin, ReceiptText } from "lucide-react"
 import { useEffect, useRef, useState } from "react"

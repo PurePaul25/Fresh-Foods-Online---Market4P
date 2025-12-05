@@ -1,9 +1,11 @@
 import Footer from "../../components/Footer"
 import Navbar
-    from "../../components/navbar"
+    from "../../components/Navbar"
 import { Banknote, BriefcaseBusiness, RefreshCw, Truck } from "lucide-react"
 import featureBg from "../../assets/images/feature-bg.jpg"
 import VanTai from "../../assets/images/VanTai.png"
+import Bao from "../../assets/images/Bao.png"
+import Phat from "../../assets/images/Phat.png"
 
 import { useEffect, useRef, useState } from "react"
 
@@ -67,11 +69,12 @@ function About() {
     ]
 
     const team = [
-        { name: "Huỳnh Văn Tài" },
-        { name: "Lê Nguyễn Thành Phát" },
-        { name: "Phạm Xuân Hòa" },
-        { name: "Đoàn Lưu Gia Bảo" },
+        { name: "Huỳnh Văn Tài", avt: VanTai },
+        { name: "Lê Nguyễn Thành Phát", avt: Phat },
+        { name: "Phạm Xuân Hòa", avt: null },
+        { name: "Đoàn Lưu Gia Bảo", avt: Bao },
     ]
+
 
     return (
         <div>
@@ -157,7 +160,7 @@ function About() {
                             >
                                 <div className="overflow-hidden rounded">
                                     <img
-                                        src={VanTai}
+                                        src={member.avt}
                                         alt={member.name}
                                         className="w-50 h-60 object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
