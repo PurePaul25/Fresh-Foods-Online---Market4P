@@ -1,5 +1,9 @@
+import dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
+
+dotenv.config();
+
 
 // Configure Cloudinary
 cloudinary.config({
@@ -7,6 +11,7 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
 
 /**
  * Upload image to Cloudinary from buffer
@@ -38,6 +43,19 @@ export const uploadToCloudinary = (fileBuffer, folder = 'ecommerce') => {
     readableStream.pipe(uploadStream);
   });
 };
+
+// export const uploadToCloudinary = async (fileBuffer, folder = "ecommerce") => {
+//   try {
+//     const result = await cloudinary.uploader.upload(
+//       `data:image/jpeg;base64,${fileBuffer.toString("base64")}`,
+//       { folder, resource_type: "auto" }
+//     );
+//     return { url: result.secure_url, public_id: result.public_id };
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+
 
 /**
  * Delete image from Cloudinary

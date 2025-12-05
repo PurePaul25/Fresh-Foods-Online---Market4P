@@ -10,8 +10,8 @@ import { uploadToCloudinary, deleteMultipleFromCloudinary } from '../config/clou
  */
 export const getAllProducts = async (req, res, next) => {
   try {
-    const { page, limit, category, brand, minPrice, maxPrice, minRating, search } = req.query;
-    
+    const { page, limit, category, brand, minPrice, maxPrice, minRating, search, status, minDiscount, maxDiscount } = req.query;
+
     const { skip, limit: limitNum, page: pageNum } = getPagination(page, limit);
 
     // Build filter query
@@ -31,6 +31,13 @@ export const getAllProducts = async (req, res, next) => {
         { description: { $regex: search, $options: 'i' } }
       ];
     }
+    if (status) filter.status = status;
+    if (minDiscount || maxDiscount) {
+      filter.discount = {};
+      if (minDiscount) filter.discount.$gte = parseFloat(minDiscount);
+      if (maxDiscount) filter.discount.$lte = parseFloat(maxDiscount);
+    }
+
 
     // Execute query with pagination
     const [products, total] = await Promise.all([
@@ -61,10 +68,10 @@ export const getProductById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findOne({ 
-      _id: id, 
-      is_active: true, 
-      deletedAt: null 
+    const product = await Product.findOne({
+      _id: id,
+      is_active: true,
+      deletedAt: null
     })
       .populate('category_id', 'name image')
       .populate('brand_id', 'name logo');
@@ -87,7 +94,7 @@ export const getProductById = async (req, res, next) => {
  */
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, price, description, stock, category_id, brand_id } = req.body;
+    const { name, price, description, stock, category_id, brand_id, status, discount } = req.body;
 
     // Validate category and brand exist
     const [category, brand] = await Promise.all([
@@ -101,7 +108,8 @@ export const createProduct = async (req, res, next) => {
     // Upload images to Cloudinary
     const images = [];
     if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map(file => 
+      // console.log('Files:', req.files);
+      const uploadPromises = req.files.map(file =>
         uploadToCloudinary(file.buffer, 'ecommerce/products')
       );
       const uploadResults = await Promise.all(uploadPromises);
@@ -116,7 +124,9 @@ export const createProduct = async (req, res, next) => {
       stock,
       category_id,
       brand_id,
-      images
+      images,
+      status,
+      discount
     });
 
     const populatedProduct = await Product.findById(product._id)
@@ -129,6 +139,7 @@ export const createProduct = async (req, res, next) => {
       data: populatedProduct
     });
   } catch (error) {
+    console.error('Error in createProduct:', error);
     next(error);
   }
 };
@@ -158,14 +169,18 @@ export const updateProduct = async (req, res, next) => {
 
     // Handle new image uploads
     if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map(file => 
-        uploadToCloudinary(file.buffer, 'ecommerce/products')
+      const oldImageIds = product.images.map(img => img.public_id);
+      if (oldImageIds.length > 0) {
+        await deleteMultipleFromCloudinary(oldImageIds);
+      }
+
+      const uploadResults = await Promise.all(
+        req.files.map(file => uploadToCloudinary(file.buffer, 'ecommerce/products'))
       );
-      const uploadResults = await Promise.all(uploadPromises);
-      
-      // Add new images to existing ones
-      updateData.images = [...product.images, ...uploadResults];
+
+      updateData.images = uploadResults;
     }
+
 
     // Update product
     Object.assign(product, updateData);
@@ -192,19 +207,26 @@ export const deleteProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findOne({ _id: id, deletedAt: null });
+    // Tìm sản phẩm
+    const product = await Product.findById(id);
     if (!product) {
       throw new ApiError(404, 'Product not found');
     }
 
-    // Soft delete
-    product.is_active = false;
-    product.deletedAt = new Date();
-    await product.save();
+    // Lấy danh sách public_id của ảnh
+    const publicIds = product.images?.map(img => img.public_id) || [];
+
+    // Xóa ảnh Cloudinary
+    if (publicIds.length > 0) {
+      await deleteMultipleFromCloudinary(publicIds);
+    }
+
+    // Xóa sản phẩm khỏi MongoDB
+    await Product.findByIdAndDelete(id);
 
     res.status(200).json({
       success: true,
-      message: 'Product deleted successfully'
+      message: 'Product deleted permanently (DB + Cloudinary)'
     });
   } catch (error) {
     next(error);

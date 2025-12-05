@@ -29,7 +29,15 @@ const upload = multer({
 
 // Export different upload configurations
 export const uploadSingle = upload.single('image');
-export const uploadMultiple = upload.array('images', 5); // Max 5 images
+export const uploadMultiple = (req, res, next) => {
+  upload.array('images', 5)(req, res, function (err) {
+    // console.log('Multer files:', req.files); 
+    if (err) {
+      return next(err);
+    }
+    next();
+  });
+};
 export const uploadFields = upload.fields([
   { name: 'logo', maxCount: 1 },
   { name: 'image', maxCount: 1 }
