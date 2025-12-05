@@ -357,7 +357,7 @@ function OrdersList() {
         initial="hidden"
         animate="visible"
       >
-        <div className="overflow-x-auto rounded-t-lg">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
               <tr>
@@ -456,7 +456,7 @@ function OrdersList() {
                       <td className="px-6 py-4">
                         {new Date(order.orderDate).toLocaleDateString("vi-VN")}
                       </td>
-                      <td className="px-6 py-4 relative">
+                      <td className="px-6 py-4">
                         <div className="flex justify-center items-center gap-2">
                           <ActionMenu
                             order={order}
@@ -516,35 +516,54 @@ function OrdersList() {
 function ActionMenu({ order, onStatusChange, onCancelClick, onDeleteClick }) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [isUpward, setIsUpward] = useState(false);
   const menuRef = useRef(null);
+  const buttonRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target)
+      ) {
         setIsOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [menuRef, buttonRef]);
 
   const toggleMenu = () => {
-    if (!isOpen && menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const menuHeight = 220; // Chiều cao ước tính của menu
       const spaceBelow = window.innerHeight - rect.bottom;
-      // Ước tính chiều cao của menu (khoảng 200px)
-      // Nếu không đủ không gian bên dưới, mở menu lên trên
-      if (spaceBelow < 200) {
-        setIsUpward(true);
+
+      let top = rect.bottom + window.scrollY;
+      // Nếu không đủ không gian bên dưới, hiển thị menu lên trên
+      if (spaceBelow < menuHeight && rect.top > menuHeight) {
+        top = rect.top + window.scrollY - menuHeight;
+      } else {
+        top = rect.bottom + window.scrollY;
       }
+
+      setMenuPosition({
+        top: top,
+        left: rect.right + window.scrollX - 192, // 192 là width của menu (w-48)
+      });
     }
     setIsOpen(!isOpen);
   };
 
   const handleStatusUpdate = (newStatus) => {
     onStatusChange(order.id, newStatus);
-    toast.success(`Đã cập nhật trạng thái thành "${newStatus}"`);
+    setIsOpen(false);
+  };
+
+  const handleDelete = () => {
+    onDeleteClick(order);
     setIsOpen(false);
   };
 
@@ -565,8 +584,9 @@ function ActionMenu({ order, onStatusChange, onCancelClick, onDeleteClick }) {
   };
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative">
       <button
+        ref={buttonRef}
         onClick={toggleMenu}
         className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
       >
@@ -575,13 +595,17 @@ function ActionMenu({ order, onStatusChange, onCancelClick, onDeleteClick }) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={menuRef}
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.15 }}
-            className={`absolute right-0 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border dark:border-gray-700 ${
-              isUpward ? "bottom-full mb-2" : "top-full mt-2"
-            }`}
+            style={{
+              position: "fixed",
+              top: `${menuPosition.top}px`,
+              left: `${menuPosition.left}px`,
+            }}
+            className="w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border dark:border-gray-700"
           >
             <div className="py-1">
               <button
@@ -592,7 +616,7 @@ function ActionMenu({ order, onStatusChange, onCancelClick, onDeleteClick }) {
               </button>
               {menuItems[order.status]?.map((item) => (
                 <button
-                  key={item.label}
+                  key={item.label} // Sử dụng handleCancel thay vì onCancelClick trực tiếp
                   onClick={item.action}
                   className="w-full text-left flex items-center cursor-pointer gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
@@ -605,7 +629,7 @@ function ActionMenu({ order, onStatusChange, onCancelClick, onDeleteClick }) {
               ))}
               <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
               <button
-                onClick={() => onDeleteClick(order)}
+                onClick={handleDelete}
                 className="w-full text-left flex items-center cursor-pointer gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
               >
                 <Trash2 size={16} /> Xóa vĩnh viễn

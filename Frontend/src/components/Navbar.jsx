@@ -112,11 +112,11 @@ function Navbar() {
           { to: "/checkout", label: "Thanh toán" },
           { to: "/shop", label: "Cửa hàng" },
         ].map((item) => (
-          <div key={item.to} className="px-4 py-3 relative group">
+          <div key={item.to} className="relative group">
             <NavLink
               to={item.to}
               className={({ isActive }) =>
-                `transition-colors duration-300 ${
+                `transition-colors block px-4 py-3  duration-300 ${
                   isActive ? "text-amber-600" : "hover:text-amber-600"
                 }`
               }
@@ -232,7 +232,7 @@ function Navbar() {
                   setShowUserMenu(!showUserMenu);
                   setShowNotifications(false);
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 hover:scale-105"
+                className="flex items-center cursor-pointer gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 hover:scale-105"
               >
                 <img
                   src={userAvatar}
@@ -279,7 +279,7 @@ function Navbar() {
                   <div className="border-t border-gray-100 py-2">
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 text-left px-4 py-2 text-red-500 hover:bg-red-50 transition-colors duration-200 text-sm font-medium"
+                      className="w-full flex cursor-pointer items-center gap-2 text-left px-4 py-2 text-red-500 hover:bg-red-50 transition-colors duration-200 text-sm font-medium"
                     >
                       <LogOut size={16} /> Đăng xuất
                     </button>
@@ -291,7 +291,7 @@ function Navbar() {
             // Chưa đăng nhập - hiển thị nút Đăng nhập
             <button
               onClick={handleLoginClick}
-              className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-all duration-300 hover:scale-105"
+              className="px-4 py-2 rounded-lg cursor-pointer bg-amber-600 hover:bg-amber-700 text-white font-semibold transition-all duration-300 hover:scale-105"
             >
               Đăng nhập
             </button>
