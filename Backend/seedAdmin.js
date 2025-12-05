@@ -7,10 +7,10 @@ import User from "./src/models/User.js"; // đường dẫn tới file User.js
 dotenv.config();
 
 const MONGO_URI = process.env.MONGODB_CONNECTIONSTRING; // kết nối MongoDB Atlas
-const ADMIN_EMAIL = "admin@gmail.com"; // email admin
-const ADMIN_USERNAME = "admin01"; // username admin
+const ADMIN_EMAIL = "admin001@gmail.com"; // email admin
+const ADMIN_USERNAME = "adminhoa"; // username admin
 const ADMIN_PASSWORD = "admin123456789"; // mật khẩu admin
-const ADMIN_DISPLAYNAME = "Admin1"; // display name
+const ADMIN_DISPLAYNAME = "AdminHoa"; // display name
 
 async function main() {
   try {

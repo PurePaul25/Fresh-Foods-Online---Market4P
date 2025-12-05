@@ -39,6 +39,26 @@ const userSchema = new mongoose.Schema(
       type: String,
       sparse: true, // cho phép null, nhưng không được trùng
     },
+
+    // ======  BAN FEATURE ====
+    isBanned: {
+      type: Boolean,
+      default: false,
+      index: true // Index for faster queries
+    },
+    bannedReason: {
+      type: String,
+      default: null
+    },
+    bannedAt: {
+      type: Date,
+      default: null
+    },
+    bannedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -49,6 +69,18 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Method to check if user is banned
+userSchema.methods.checkBanStatus = function() {
+  if (this.isBanned) {
+    return {
+      isBanned: true,
+      reason: this.bannedReason || 'No reason provided',
+      bannedAt: this.bannedAt
+    };
+  }
+  return { isBanned: false };
+};
 
 const User = mongoose.model("User", userSchema);
 export default User;

@@ -53,3 +53,10 @@ export const createCategorySchema = z.object({
   name: z.string().min(2, 'Category name must be at least 2 characters'),
   description: z.string().optional()
 });
+
+// Ban user validation
+export const banUserSchema = z.object({
+  reason: z.string()
+    .min(10, 'Ban reason must be at least 10 characters')
+    .max(500, 'Ban reason must not exceed 500 characters')
+});

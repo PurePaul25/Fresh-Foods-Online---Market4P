@@ -42,6 +42,10 @@ export const signUp = async (req, res) => {
       email,
       displayName: `${firstName} ${lastName}`,
       role: "user",
+      isBanned: false,
+      bannedReason: null,
+      bannedAt: null,
+      bannedBy: null,
     });
 
     return res.sendStatus(204);
@@ -68,6 +72,16 @@ export const signIn = async (req, res) => {
       return res
         .status(401)
         .json({ message: "Email hoặc password không chính xác" });
+    }
+
+    // =====   user ban account ===
+    if (user.isBanned) {
+      return res.status(403).json({
+        success: false,
+        message: `Tài khoản của bạn đã bị chặn. Lý do: ${user.bannedReason || 'Không có lý do cụ thể'}`,
+        bannedAt: user.bannedAt,
+        isBanned: true
+      });
     }
 
     // Kiểm tra password
@@ -155,6 +169,27 @@ export const refreshToken = async (req, res) => {
     if (session.expiresAt < new Date()) {
       return res.status(403).json({ message: "Token đã hết hạn." });
     }
+
+    // =========== check sesion ban account =========
+    const user = await User.findById(session.userId);
+
+    if (!user) {
+      await Session.deleteOne({ refreshToken: token });
+      return res.status(401).json({ message: "User không tồn tại." });
+    }
+
+    if (user.isBanned) {
+      await Session.deleteOne({ refreshToken: token });
+      res.clearCookie("refreshToken");
+
+      return res.status(403).json({
+        success: false,
+        message: `Tài khoản của bạn đã bị chặn. Lý do: ${user.bannedReason || 'Không có lý do cụ thể'}`,
+        bannedAt: user.bannedAt,
+        isBanned: true
+      });
+    }
+
 
     // tạo access token mới
     const accessToken = jwt.sign(
