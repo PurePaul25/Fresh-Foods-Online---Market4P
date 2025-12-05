@@ -133,11 +133,6 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 },
-};
-
 function OrdersList() {
   const [orders, setOrders] = useState(initialOrders);
   const [filterStatus, setFilterStatus] = useState("Tất cả");
@@ -191,6 +186,14 @@ function OrdersList() {
     indexOfLastItem
   );
   const totalPages = Math.ceil(sortedAndFilteredOrders.length / itemsPerPage);
+
+  // Xử lý lỗi phân trang: Nếu xóa item cuối cùng của trang hiện tại,
+  // tự động quay về trang cuối cùng hợp lệ.
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   const paginate = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
@@ -416,11 +419,15 @@ function OrdersList() {
                 {currentOrders.length > 0 ? (
                   currentOrders.map((order) => (
                     <motion.tr
-                      layout
                       key={order.id}
                       className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                      variants={itemVariants}
-                      exit={{ opacity: 0, x: -50 }}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{
+                        opacity: 0,
+                        y: -10,
+                        transition: { duration: 0.2 },
+                      }}
                     >
                       <td className="px-6 py-4 font-medium text-amber-600 whitespace-nowrap dark:text-amber-500">
                         {order.id}
@@ -482,7 +489,7 @@ function OrdersList() {
             <button
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border rounded-lg hover:bg-gray-100 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
             >
               <ChevronLeft size={16} />
               Trang trước
@@ -493,7 +500,7 @@ function OrdersList() {
             <button
               onClick={() => paginate(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border rounded-lg hover:bg-gray-100 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
             >
               Trang sau
               <ChevronRight size={16} />

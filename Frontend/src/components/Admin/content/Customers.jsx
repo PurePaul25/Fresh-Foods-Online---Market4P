@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 // eslint-disable-next-line no-unused-vars
@@ -229,6 +229,13 @@ function Customers() {
     sortedAndFilteredCustomers.length / itemsPerPage
   );
 
+  // Xử lý lỗi phân trang: Nếu xóa item cuối cùng của trang hiện tại,
+  // tự động quay về trang cuối cùng hợp lệ.
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
   const paginate = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
@@ -413,18 +420,18 @@ function Customers() {
                 {currentCustomers.length > 0 ? (
                   currentCustomers.map((customer) => (
                     <motion.tr
-                      layout
                       key={customer.id}
                       className={`border-b dark:border-gray-700 transition-colors ${
                         customer.status === "banned"
                           ? "bg-red-50 dark:bg-red-900/20 opacity-60"
                           : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600"
                       }`}
-                      variants={itemVariants}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       exit={{
                         opacity: 0,
-                        x: -50,
-                        transition: { duration: 0.3 },
+                        y: -10,
+                        transition: { duration: 0.2 },
                       }}
                     >
                       <th

@@ -29,19 +29,6 @@ const getStatusBadge = (status) => {
   }
 };
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05 },
-  },
-};
-
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 },
-};
-
 function ProductList() {
   const navigate = useNavigate();
   // Lấy dữ liệu từ API
@@ -50,7 +37,7 @@ function ProductList() {
 
   // Khởi tạo bộ lọc dựa trên dữ liệu sản phẩm thực tế
   const categories = useMemo(
-    () => ["Tất cả", ...new Set(products.map((p) => p.category))],
+    () => ["Tất cả", ...new Set(products.map((p) => p.categoryName))],
     [products]
   );
   const statuses = useMemo(
@@ -75,15 +62,19 @@ function ProductList() {
         setIsLoading(true);
         const res = await apiService.getProducts();
         // Chuẩn hóa dữ liệu từ API backend: { success, data: [...], pagination }
-        const normalized =
-          Array.isArray(res)
-            ? res
-            : Array.isArray(res?.data)
-            ? res.data
-            : Array.isArray(res?.products)
-            ? res.products
-            : [];
-        setProducts(normalized);
+        const normalized = Array.isArray(res)
+          ? res
+          : Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.products)
+          ? res.products
+          : [];
+        // Chuẩn hóa dữ liệu, thêm categoryName để lọc
+        const productsWithCategoryName = normalized.map((p) => ({
+          ...p,
+          categoryName: p.category_id?.name || p.category || "Chưa phân loại",
+        }));
+        setProducts(productsWithCategoryName);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu sản phẩm:", error);
         toast.error("Không thể tải danh sách sản phẩm");
@@ -105,7 +96,8 @@ function ProductList() {
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const categoryMatch =
-        filters.category === "Tất cả" || product.category === filters.category;
+        filters.category === "Tất cả" ||
+        product.categoryName === filters.category;
       const statusMatch =
         filters.status === "Tất cả" || product.status === filters.status;
       return categoryMatch && statusMatch;
@@ -120,6 +112,14 @@ function ProductList() {
     indexOfLastItem
   );
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // Xử lý lỗi phân trang: Nếu xóa item cuối cùng của trang hiện tại,
+  // tự động quay về trang cuối cùng hợp lệ.
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   const paginate = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
@@ -140,7 +140,9 @@ function ProductList() {
   const handleConfirmDelete = async () => {
     if (productToDelete) {
       try {
-        await apiService.deleteProduct(productToDelete._id || productToDelete.id);
+        await apiService.deleteProduct(
+          productToDelete._id || productToDelete.id
+        );
         // Cập nhật UI bằng cách xóa sản phẩm khỏi state
         setProducts((prevProducts) =>
           prevProducts.filter(
@@ -265,12 +267,7 @@ function ProductList() {
       ) : (
         <>
           {/* Bảng sản phẩm */}
-          <motion.div
-            className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+          <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
@@ -298,24 +295,19 @@ function ProductList() {
                     </th>
                   </tr>
                 </thead>
-                <motion.tbody
-                  key={currentPage} // Thêm key để trigger lại animation khi chuyển trang
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                >
+                <tbody>
                   <AnimatePresence>
                     {currentProducts.length > 0 ? (
                       currentProducts.map((product) => (
                         <motion.tr
-                          layout
                           key={product._id || product.id}
                           className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                          variants={itemVariants}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
                           exit={{
                             opacity: 0,
-                            x: -50,
-                            transition: { duration: 0.3 },
+                            y: -10,
+                            transition: { duration: 0.2 },
                           }}
                         >
                           <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
@@ -343,11 +335,7 @@ function ProductList() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            {product.category ||
-                              product.category_id?.name ||
-                              "Không có danh mục"}
-                          </td>
+                          <td className="px-6 py-4">{product.categoryName}</td>
                           <td className="px-6 py-4">
                             {product.price.toLocaleString("vi-VN")}
                           </td>
@@ -405,10 +393,9 @@ function ProductList() {
                       </motion.tr>
                     )}
                   </AnimatePresence>
-                </motion.tbody>
+                </tbody>
               </table>
             </div>
-
             {/* Phân trang */}
             {totalPages > 1 && (
               <div className="flex justify-between items-center p-4 border-t dark:border-gray-700">
@@ -436,7 +423,7 @@ function ProductList() {
                 </button>
               </div>
             )}
-          </motion.div>
+          </div>
         </>
       )}
     </motion.div>

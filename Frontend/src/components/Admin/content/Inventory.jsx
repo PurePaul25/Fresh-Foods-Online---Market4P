@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 // eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
   ClipboardList,
@@ -35,19 +35,6 @@ const getStockStatus = (stock, lowStockThreshold) => {
     text: "Còn hàng",
     badge: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
   };
-};
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05 },
-  },
-};
-
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1 },
 };
 
 function Inventory() {
@@ -97,6 +84,14 @@ function Inventory() {
     indexOfLastItem
   );
   const totalPages = Math.ceil(sortedAndFilteredProducts.length / itemsPerPage);
+
+  // Xử lý lỗi phân trang: Nếu xóa item cuối cùng của trang hiện tại,
+  // tự động quay về trang cuối cùng hợp lệ.
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   const paginate = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
@@ -204,7 +199,6 @@ function Inventory() {
       {/* Bảng tồn kho */}
       <motion.div
         className="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden"
-        variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
@@ -237,60 +231,67 @@ function Inventory() {
               </tr>
             </thead>
             <tbody>
-              {currentProducts.map((product) => {
-                const status = getStockStatus(
-                  product.stock,
-                  product.lowStockThreshold
-                );
-                return (
-                  <motion.tr
-                    layout
-                    key={product.id}
-                    className="border-b dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    variants={itemVariants}
-                  >
-                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={product.avatar}
-                          alt={product.name}
-                          className="w-10 h-10 rounded-md object-cover"
-                        />
-                        <div>
-                          <div className="font-semibold">{product.name}</div>
-                          <div className="text-xs text-gray-500">
-                            {product.id}
+              <AnimatePresence>
+                {currentProducts.map((product) => {
+                  const status = getStockStatus(
+                    product.stock,
+                    product.lowStockThreshold
+                  );
+                  return (
+                    <motion.tr
+                      key={product.id}
+                      className="border-b dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{
+                        opacity: 0,
+                        y: -10,
+                        transition: { duration: 0.2 },
+                      }}
+                    >
+                      <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={product.avatar}
+                            alt={product.name}
+                            className="w-10 h-10 rounded-md object-cover"
+                          />
+                          <div>
+                            <div className="font-semibold">{product.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {product.id}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">{product.category}</td>
-                    <td className="px-6 py-4 text-center font-bold text-lg text-gray-800 dark:text-gray-200">
-                      {product.stock}
-                    </td>
-                    <td className="px-6 py-4 text-center text-red-600 dark:text-red-400 font-medium">
-                      {product.lowStockThreshold}
-                    </td>
-                    <td className="px-6 py-4">{product.sold}</td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
-                      <span
-                        className={`px-3 py-1 text-xs font-semibold leading-tight rounded-full ${status.badge}`}
-                      >
-                        {status.text}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => handleOpenUpdateModal(product)}
-                        className="p-2 rounded-full cursor-pointer duration-200 hover:bg-blue-100 dark:hover:bg-gray-700 text-blue-600 dark:text-blue-400 transition-colors"
-                        title="Cập nhật số lượng"
-                      >
-                        <Edit size={18} />
-                      </button>
-                    </td>
-                  </motion.tr>
-                );
-              })}
+                      </td>
+                      <td className="px-6 py-4">{product.category}</td>
+                      <td className="px-6 py-4 text-center font-bold text-lg text-gray-800 dark:text-gray-200">
+                        {product.stock}
+                      </td>
+                      <td className="px-6 py-4 text-center text-red-600 dark:text-red-400 font-medium">
+                        {product.lowStockThreshold}
+                      </td>
+                      <td className="px-6 py-4">{product.sold}</td>
+                      <td className="px-6 py-4 text-center whitespace-nowrap">
+                        <span
+                          className={`px-3 py-1 text-xs font-semibold leading-tight rounded-full ${status.badge}`}
+                        >
+                          {status.text}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => handleOpenUpdateModal(product)}
+                          className="p-2 rounded-full cursor-pointer duration-200 hover:bg-blue-100 dark:hover:bg-gray-700 text-blue-600 dark:text-blue-400 transition-colors"
+                          title="Cập nhật số lượng"
+                        >
+                          <Edit size={18} />
+                        </button>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
