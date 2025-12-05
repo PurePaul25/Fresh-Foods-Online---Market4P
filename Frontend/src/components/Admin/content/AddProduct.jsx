@@ -148,6 +148,15 @@ function AddProduct() {
       return;
     }
 
+    // Kiểm tra giá trị của ô giảm giá
+    const discountValue = product.discount
+      ? parseInt(product.discount, 10)
+      : null;
+    if (discountValue !== null && (discountValue < 0 || discountValue > 100)) {
+      toast.error("Mức giảm giá phải nằm trong khoảng từ 0 đến 100%.");
+      return;
+    }
+
     setIsSubmitting(true);
     const promise = (async () => {
       try {
