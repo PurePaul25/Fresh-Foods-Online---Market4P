@@ -148,7 +148,12 @@ class ApiService {
   // ==================== PRODUCTS ====================
 
   async getProducts(params = {}) {
-    const queryString = new URLSearchParams(params).toString();
+    // Mặc định yêu cầu nhiều sản phẩm hơn để hiển thị phân trang đầy đủ
+    const defaultParams = {
+      limit: 50, // Yêu cầu tối đa 50 sản phẩm
+      ...params,
+    };
+    const queryString = new URLSearchParams(defaultParams).toString();
     return this.request(`/api/products?${queryString}`);
   }
 
