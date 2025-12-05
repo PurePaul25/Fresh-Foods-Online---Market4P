@@ -18,86 +18,14 @@ import {
   UserCheck,
 } from "lucide-react";
 import ConfirmationModal from "../Layout/ConfirmationModal";
+import BanCustomerModal from "./BanCustomerModal";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import BanCustomerModal from "./BanCustomerModal";
+import apiService from "../../../services/api.js";
 
 // --- Dữ liệu giả lập ---
 // Trong ứng dụng thực tế, dữ liệu này sẽ được lấy từ API.
-const initialCustomers = [
-  {
-    id: "CUST001",
-    name: "Nguyễn Văn An",
-    email: "an.nguyen@example.com",
-    phone: "0901234567",
-    registrationDate: "2025-10-15T09:00:00Z",
-    totalSpent: 1500000,
-    lastOrderDate: "2025-10-26T10:30:00Z",
-    avatar: `https://i.pravatar.cc/150?u=CUST001`,
-    status: "active",
-    banReason: null,
-  },
-  {
-    id: "CUST002",
-    name: "Trần Thị Bích",
-    email: "bich.tran@example.com",
-    phone: "0912345678",
-    registrationDate: "2025-09-20T14:30:00Z",
-    totalSpent: 780000,
-    lastOrderDate: "2025-10-25T14:00:00Z",
-    avatar: `https://i.pravatar.cc/150?u=CUST002`,
-    status: "active",
-    banReason: null,
-  },
-  {
-    id: "CUST003",
-    name: "Lê Hoàng Cường",
-    email: "cuong.le@example.com",
-    phone: "0987654321",
-    registrationDate: "2024-08-01T11:00:00Z",
-    totalSpent: 3200000,
-    lastOrderDate: "2025-10-25T09:15:00Z",
-    avatar: `https://i.pravatar.cc/150?u=CUST003`,
-    status: "banned",
-    banReason: "Tài khoản có dấu hiệu gian lận trong các đơn hàng.",
-  },
-  {
-    id: "CUST004",
-    name: "Phạm Thuỳ Dung",
-    email: "dung.pham@example.com",
-    phone: "0934567890",
-    registrationDate: "2025-10-05T18:00:00Z",
-    totalSpent: 220000,
-    lastOrderDate: "2025-10-24T18:45:00Z",
-    avatar: `https://i.pravatar.cc/150?u=CUST004`,
-    status: "active",
-    banReason: null,
-  },
-  {
-    id: "CUST005",
-    name: "Võ Thị E",
-    email: "e.vo@example.com",
-    phone: "0945678901",
-    registrationDate: "2025-07-12T08:20:00Z",
-    totalSpent: 450000,
-    lastOrderDate: "2025-10-26T11:00:00Z",
-    avatar: `https://i.pravatar.cc/150?u=CUST005`,
-    status: "active",
-    banReason: null,
-  },
-  {
-    id: "CUST006",
-    name: "Hoàng Minh Khang",
-    email: "khang.hoang@example.com",
-    phone: "0967890123",
-    registrationDate: "2024-05-30T20:10:00Z",
-    totalSpent: 0,
-    lastOrderDate: null,
-    avatar: `https://i.pravatar.cc/150?u=CUST006`,
-    status: "active",
-    banReason: null,
-  },
-];
+const initialCustomers = [];
 
 // Hàm helper để lấy class cho badge trạng thái
 const getStatusBadge = (lastOrderDate) => {
@@ -173,6 +101,38 @@ function Customers() {
     key: "registrationDate",
     direction: "desc",
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch customers từ API
+  const fetchCustomers = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await apiService.getCustomers({
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchTerm,
+      });
+
+      if (response.success && response.data) {
+        setCustomers(response.data);
+      } else {
+        setError("Failed to fetch customers");
+      }
+    } catch (err) {
+      console.error("Error fetching customers:", err);
+      setError(err.message || "Failed to fetch customers");
+      toast.error("Lỗi tải danh sách khách hàng");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch data khi component mount và khi có thay đổi search/page
+  useEffect(() => {
+    fetchCustomers();
+  }, [currentPage, searchTerm, itemsPerPage]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -196,11 +156,8 @@ function Customers() {
   }, [customers]);
 
   const sortedAndFilteredCustomers = useMemo(() => {
-    let filteredItems = customers.filter(
-      (customer) =>
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.phone.includes(searchTerm)
+    let filteredItems = customers.filter((customer) =>
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (sortConfig.key) {
@@ -236,6 +193,7 @@ function Customers() {
       setCurrentPage(totalPages);
     }
   }, [totalPages, currentPage]);
+
   const paginate = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
@@ -247,12 +205,20 @@ function Customers() {
     setDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (customerToDelete) {
-      setCustomers((prev) => prev.filter((c) => c.id !== customerToDelete.id));
-      toast.success(`Khách hàng "${customerToDelete.name}" đã được xóa.`);
-      setDeleteModalOpen(false);
-      setCustomerToDelete(null);
+      try {
+        await apiService.deleteCustomer(customerToDelete.id);
+        setCustomers((prev) =>
+          prev.filter((c) => c.id !== customerToDelete.id)
+        );
+        toast.success(`Khách hàng "${customerToDelete.name}" đã được xóa.`);
+      } catch (err) {
+        toast.error("Không thể xóa khách hàng: " + err.message);
+      } finally {
+        setDeleteModalOpen(false);
+        setCustomerToDelete(null);
+      }
     }
   };
 
@@ -262,28 +228,53 @@ function Customers() {
     setBanModalOpen(true);
   };
 
-  const handleConfirmBan = (reason) => {
+  const handleConfirmBan = async (reason) => {
     if (customerToBan) {
-      setCustomers((prev) =>
-        prev.map((c) =>
-          c.id === customerToBan.id
-            ? { ...c, status: "banned", banReason: reason }
-            : c
-        )
-      );
-      toast.success(`Đã cấm tài khoản "${customerToBan.name}".`);
-      setBanModalOpen(false);
-      setCustomerToBan(null);
+      try {
+        await apiService.banCustomer(customerToBan.id, reason);
+        setCustomers((prev) =>
+          prev.map((c) =>
+            c.id === customerToBan.id
+              ? {
+                  ...c,
+                  status: "banned",
+                  banReason: reason,
+                  isBanned: true,
+                  bannedAt: new Date().toISOString(),
+                }
+              : c
+          )
+        );
+        toast.success(`Đã cấm tài khoản "${customerToBan.name}".`);
+      } catch (err) {
+        toast.error("Không thể cấm tài khoản: " + err.message);
+      } finally {
+        setBanModalOpen(false);
+        setCustomerToBan(null);
+      }
     }
   };
 
-  const handleUnban = (customer) => {
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c.id === customer.id ? { ...c, status: "active", banReason: null } : c
-      )
-    );
-    toast.success(`Đã bỏ cấm tài khoản "${customer.name}".`);
+  const handleUnban = async (customer) => {
+    try {
+      await apiService.unbanCustomer(customer.id);
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c.id === customer.id
+            ? {
+                ...c,
+                status: "active",
+                banReason: null,
+                isBanned: false,
+                bannedAt: null,
+              }
+            : c
+        )
+      );
+      toast.success(`Đã bỏ cấm tài khoản "${customer.name}".`);
+    } catch (err) {
+      toast.error("Không thể bỏ cấm tài khoản: " + err.message);
+    }
   };
 
   // Logic sắp xếp
@@ -395,164 +386,190 @@ function Customers() {
         initial="hidden"
         animate="visible"
       >
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
-              <tr>
-                <th scope="col" className="px-6 py-3">
-                  Khách hàng
-                </th>
-                <SortableHeader
-                  columnKey="registrationDate"
-                  title="Ngày tham gia"
-                />
-                <SortableHeader columnKey="totalSpent" title="Tổng chi tiêu" />
-                <th scope="col" className="px-6 py-3 text-center">
-                  Trạng thái
-                </th>
-                <th scope="col" className="px-6 py-3 text-center">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <motion.tbody>
-              <AnimatePresence>
-                {currentCustomers.length > 0 ? (
-                  currentCustomers.map((customer) => (
-                    <motion.tr
-                      key={customer.id}
-                      className={`border-b dark:border-gray-700 transition-colors ${
-                        customer.status === "banned"
-                          ? "bg-red-50 dark:bg-red-900/20 opacity-60"
-                          : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600"
-                      }`}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{
-                        opacity: 0,
-                        y: -10,
-                        transition: { duration: 0.2 },
-                      }}
-                    >
-                      <th
-                        scope="row"
-                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                      >
-                        <div
-                          className="flex items-center gap-3 cursor-pointer group"
-                          onClick={() =>
-                            navigate(
-                              `/admin/dashboard/customers/${customer.id}`
-                            )
-                          }
-                        >
-                          <img
-                            src={customer.avatar}
-                            alt={customer.name}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                          <div>
-                            <div className="font-bold text-base duration-200 group-hover:text-amber-600 transition-colors">
-                              {customer.name}
-                            </div>
-                            {customer.status === "banned" && (
-                              <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-red-800 bg-red-200 dark:text-red-200 dark:bg-red-800 rounded-full">
-                                Đã cấm
-                              </span>
-                            )}
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {customer.email}
-                            </div>
-                          </div>
-                        </div>
-                      </th>
-                      <td className="px-6 py-4">
-                        {format(new Date(customer.registrationDate), "P", {
-                          locale: vi,
-                        })}
-                      </td>
-                      <td className="px-6 py-4 font-medium text-green-600 dark:text-green-400">
-                        {customer.totalSpent.toLocaleString("vi-VN")} VNĐ
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`px-3 py-1 text-xs font-semibold leading-tight rounded-full ${getStatusBadge(
-                            customer.lastOrderDate
-                          )}`}
-                        >
-                          {getStatusText(customer.lastOrderDate)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex justify-center items-center gap-3">
-                          {customer.status === "active" ? (
-                            <button
-                              onClick={() => handleBanClick(customer)}
-                              className="p-2 rounded-full cursor-pointer duration-200 hover:bg-yellow-100 dark:hover:bg-gray-700 text-yellow-600 dark:text-yellow-400 transition-colors"
-                              title="Cấm tài khoản"
-                            >
-                              <UserX size={18} />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleUnban(customer)}
-                              className="p-2 rounded-full cursor-pointer duration-200 hover:bg-green-100 dark:hover:bg-gray-700 text-green-600 dark:text-green-400 transition-colors"
-                              title="Bỏ cấm tài khoản"
-                            >
-                              <UserCheck size={18} />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteClick(customer)}
-                            className="p-2 rounded-full cursor-pointer duration-200 hover:bg-red-100 dark:hover:bg-gray-700 text-red-600 dark:text-red-400 transition-colors"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))
-                ) : (
-                  <motion.tr>
-                    <td
-                      colSpan="5"
-                      className="text-center py-10 text-gray-500 dark:text-gray-400"
-                    >
-                      Không tìm thấy khách hàng nào.
-                    </td>
-                  </motion.tr>
-                )}
-              </AnimatePresence>
-            </motion.tbody>
-          </table>
-        </div>
-
-        {/* Phân trang */}
-        {totalPages > 1 && (
-          <div className="flex justify-between items-center p-4 border-t dark:border-gray-700">
-            <button
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="flex items-center cursor-pointer duration-200 gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
-            >
-              <ChevronLeft size={16} />
-              Trang trước
-            </button>
-
-            <div className="text-sm text-gray-700 dark:text-gray-400">
-              Trang <span className="font-semibold">{currentPage}</span> trên{" "}
-              <span className="font-semibold">{totalPages}</span>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-10">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600 mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">
+                Đang tải dữ liệu...
+              </p>
             </div>
-
+          </div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-600 dark:text-red-400">
+            <p>Lỗi: {error}</p>
             <button
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="flex items-center cursor-pointer duration-200 gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+              onClick={fetchCustomers}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
-              Trang sau
-              <ChevronRight size={16} />
+              Thử lại
             </button>
           </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+                  <tr>
+                    <th scope="col" className="px-6 py-3">
+                      Khách hàng
+                    </th>
+                    <SortableHeader
+                      columnKey="registrationDate"
+                      title="Ngày tham gia"
+                    />
+                    <SortableHeader
+                      columnKey="totalSpent"
+                      title="Tổng chi tiêu"
+                    />
+                    <th scope="col" className="px-6 py-3 text-center">
+                      Trạng thái
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-center">
+                      Hành động
+                    </th>
+                  </tr>
+                </thead>
+                <motion.tbody>
+                  <AnimatePresence>
+                    {currentCustomers.length > 0 ? (
+                      currentCustomers.map((customer) => (
+                        <motion.tr
+                          key={customer.id}
+                          className={`border-b dark:border-gray-700 transition-colors ${
+                            customer.status === "banned"
+                              ? "bg-red-50 dark:bg-red-900/20 opacity-60"
+                              : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600"
+                          }`}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{
+                            opacity: 0,
+                            y: -10,
+                            transition: { duration: 0.2 },
+                          }}
+                        >
+                          <th
+                            scope="row"
+                            className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                          >
+                            <div
+                              className="flex items-center gap-3 cursor-pointer group"
+                              onClick={() =>
+                                navigate(
+                                  `/admin/dashboard/customers/${customer.id}`
+                                )
+                              }
+                            >
+                              <img
+                                src={customer.avatar}
+                                alt={customer.name}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                              <div>
+                                <div className="font-bold text-base duration-200 group-hover:text-amber-600 transition-colors">
+                                  {customer.name}
+                                </div>
+                                {customer.status === "banned" && (
+                                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-red-800 bg-red-200 dark:text-red-200 dark:bg-red-800 rounded-full">
+                                    Đã cấm
+                                  </span>
+                                )}
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {customer.email}
+                                </div>
+                              </div>
+                            </div>
+                          </th>
+                          <td className="px-6 py-4">
+                            {format(new Date(customer.registrationDate), "P", {
+                              locale: vi,
+                            })}
+                          </td>
+                          <td className="px-6 py-4 font-medium text-green-600 dark:text-green-400">
+                            {customer.totalSpent.toLocaleString("vi-VN")} VNĐ
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span
+                              className={`px-3 py-1 text-xs font-semibold leading-tight rounded-full ${getStatusBadge(
+                                customer.lastOrderDate
+                              )}`}
+                            >
+                              {getStatusText(customer.lastOrderDate)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex justify-center items-center gap-3">
+                              {customer.status === "active" ? (
+                                <button
+                                  onClick={() => handleBanClick(customer)}
+                                  className="p-2 rounded-full cursor-pointer duration-200 hover:bg-yellow-100 dark:hover:bg-gray-700 text-yellow-600 dark:text-yellow-400 transition-colors"
+                                  title="Cấm tài khoản"
+                                >
+                                  <UserX size={18} />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleUnban(customer)}
+                                  className="p-2 rounded-full cursor-pointer duration-200 hover:bg-green-100 dark:hover:bg-gray-700 text-green-600 dark:text-green-400 transition-colors"
+                                  title="Bỏ cấm tài khoản"
+                                >
+                                  <UserCheck size={18} />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteClick(customer)}
+                                className="p-2 rounded-full cursor-pointer duration-200 hover:bg-red-100 dark:hover:bg-gray-700 text-red-600 dark:text-red-400 transition-colors"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))
+                    ) : (
+                      <motion.tr>
+                        <td
+                          colSpan="5"
+                          className="text-center py-10 text-gray-500 dark:text-gray-400"
+                        >
+                          Không tìm thấy khách hàng nào.
+                        </td>
+                      </motion.tr>
+                    )}
+                  </AnimatePresence>
+                </motion.tbody>
+              </table>
+            </div>
+
+            {/* Phân trang */}
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center p-4 border-t dark:border-gray-700">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="flex items-center cursor-pointer duration-200 gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                >
+                  <ChevronLeft size={16} />
+                  Trang trước
+                </button>
+
+                <div className="text-sm text-gray-700 dark:text-gray-400">
+                  Trang <span className="font-semibold">{currentPage}</span>{" "}
+                  trên <span className="font-semibold">{totalPages}</span>
+                </div>
+
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center cursor-pointer duration-200 gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                >
+                  Trang sau
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </motion.div>
     </motion.div>

@@ -23,12 +23,15 @@ import {
   Tag,
 } from "lucide-react";
 import PaymentQR from "../../components/payMentQR";
+import toast from "react-hot-toast";
+import apiService from "../../services/api.js";
 
 function useScrollAnimation(threshold = 0.1) {
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const currentRef = ref.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -38,13 +41,13 @@ function useScrollAnimation(threshold = 0.1) {
       { threshold }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, [threshold]);
@@ -68,6 +71,7 @@ const paymentMethods = [
 export default function CheckoutBody() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
 
+  // eslint-disable-next-line no-unused-vars
   const [currentStep, setCurrentStep] = useState(1);
   const [shippingMethod, setShippingMethod] = useState("express");
   const [paymentMethod, setPaymentMethod] = useState("card");
@@ -134,14 +138,49 @@ export default function CheckoutBody() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCheckout = () => {
-    const newOrderId = "DH" + Date.now().toString().slice(-8);
-    setOrderId(newOrderId);
+  const handleCheckout = async () => {
+    try {
+      // Kiểm tra xem người dùng có bị cấm hay không
+      const currentUser = apiService.getStoredUser();
+      if (currentUser) {
+        // Lấy thông tin user hiện tại từ API
+        const userInfo = await apiService.getCurrentUser();
 
-    if (paymentMethod === "bank") {
-      setShowPaymentQR(true);
-    } else {
-      alert(`Đặt hàng thành công! Mã đơn hàng: ${newOrderId}`);
+        if (userInfo.data && userInfo.data.isBanned) {
+          toast.error(
+            `Tài khoản của bạn đã bị chặn. Lý do: ${
+              userInfo.data.bannedReason || "Không có lý do cụ thể"
+            }. Bạn không thể tiếp tục mua hàng.`
+          );
+          return;
+        }
+      }
+
+      // Nếu không bị cấm, tiếp tục xử lý đơn hàng
+      const newOrderId = "DH" + Date.now().toString().slice(-8);
+      setOrderId(newOrderId);
+
+      // Ghi log thông tin đặt hàng
+      console.log("Order Info:", {
+        orderId: newOrderId,
+        shippingMethod,
+        paymentMethod,
+        formData,
+        total,
+      });
+
+      if (paymentMethod === "bank") {
+        setShowPaymentQR(true);
+      } else {
+        toast.success(`Đặt hàng thành công! Mã đơn hàng: ${newOrderId}`);
+      }
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      if (error.message && error.message.includes("banned")) {
+        toast.error("Tài khoản của bạn đã bị chặn. Không thể đặt hàng.");
+      } else {
+        toast.error("Lỗi khi xử lý đơn hàng: " + error.message);
+      }
     }
   };
 

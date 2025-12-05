@@ -1,6 +1,8 @@
 // src/services/api.js
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const VITE_API_URL_ENV = import.meta.env.VITE_API_URL;
+const API_BASE_URL = VITE_API_URL_ENV
+  ? `${VITE_API_URL_ENV}/api`
+  : "http://localhost:5001/api";
 
 class ApiService {
   constructor() {
@@ -154,16 +156,16 @@ class ApiService {
       ...params,
     };
     const queryString = new URLSearchParams(defaultParams).toString();
-    return this.request(`/api/products?${queryString}`);
+    return this.request(`/products?${queryString}`);
   }
 
   async getProductById(id) {
-    return this.request(`/api/products/${id}`);
+    return this.request(`/products/${id}`);
   }
 
   async createProduct(formData) {
     // FormData để upload ảnh
-    const url = `${this.baseURL}/api/products`;
+    const url = `${this.baseURL}/products`;
 
     const doRequest = async () => {
       const res = await fetch(url, {
@@ -208,7 +210,7 @@ class ApiService {
   }
 
   async updateProduct(id, formData) {
-    const url = `${this.baseURL}/api/products/${id}`;
+    const url = `${this.baseURL}/products/${id}`;
 
     const doRequest = async () => {
       const res = await fetch(url, {
@@ -253,7 +255,7 @@ class ApiService {
   }
 
   async deleteProduct(id) {
-    return this.request(`/api/products/${id}`, {
+    return this.request(`/products/${id}`, {
       method: "DELETE",
     });
   }
@@ -321,11 +323,11 @@ class ApiService {
 
   async getProductReviews(productId, params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/api/products/${productId}/reviews?${queryString}`);
+    return this.request(`/products/${productId}/reviews?${queryString}`);
   }
 
   async createReview(productId, reviewData) {
-    return this.request(`/api/products/${productId}/reviews`, {
+    return this.request(`/products/${productId}/reviews`, {
       method: "POST",
       body: JSON.stringify(reviewData),
     });
@@ -339,6 +341,34 @@ class ApiService {
 
   async getRevenueAnalytics(period = "month") {
     return this.request(`/admin/revenue?period=${period}`);
+  }
+
+  // Get all customers with order details
+  async getCustomers(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/admin/customers?${queryString}`);
+  }
+
+  // Ban a customer
+  async banCustomer(userId, reason) {
+    return this.request(`/admin/users/${userId}/ban`, {
+      method: "PATCH",
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  // Unban a customer
+  async unbanCustomer(userId) {
+    return this.request(`/admin/users/${userId}/unban`, {
+      method: "PATCH",
+    });
+  }
+
+  // Delete a customer
+  async deleteCustomer(userId) {
+    return this.request(`/admin/users/${userId}`, {
+      method: "DELETE",
+    });
   }
 
   // ==================== UTILS ====================

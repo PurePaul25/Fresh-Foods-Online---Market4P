@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import CountUp from "react-countup";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -23,6 +23,7 @@ import {
 } from "react-icons/fa";
 import { initialOrders, getStatusIcon } from "./Orders"; // Import dữ liệu đơn hàng chung và icon
 import StatCard from "./StatCard";
+import apiService from "../../../services/api";
 
 // Đăng ký các thành phần cần thiết cho Chart.js
 ChartJS.register(
@@ -43,7 +44,7 @@ ChartJS.register(
 const summaryStats = [
   {
     title: "Tổng khách hàng",
-    value: 1280,
+    value: 148,
     comparison: "+12.5%", // So sánh với kỳ trước
     isPositive: true,
     icon: <FaUsers className="text-blue-500" size={24} />,
@@ -51,7 +52,7 @@ const summaryStats = [
   },
   {
     title: "Tổng sản phẩm",
-    value: 8320,
+    value: 1320,
     comparison: "+50", // Thêm 50 sản phẩm mới
     isPositive: true,
     icon: <FaBoxOpen className="text-orange-500" size={24} />,
@@ -59,7 +60,7 @@ const summaryStats = [
   },
   {
     title: "Tổng đơn hàng",
-    value: 3456,
+    value: 356,
     comparison: "+8.2%",
     isPositive: true,
     icon: <FaShoppingCart className="text-yellow-500" size={24} />,
@@ -67,7 +68,7 @@ const summaryStats = [
   },
   {
     title: "Tổng doanh thu",
-    value: 150000000,
+    value: 121000000,
     comparison: "+15.3%",
     isPositive: true,
     suffix: "đ",
@@ -137,41 +138,6 @@ const categoryData = {
   ],
 };
 
-// Dữ liệu giả lập cho Top sản phẩm bán chạy
-const topSellingProducts = [
-  {
-    id: "SP001",
-    name: "Thịt bò Wagyu",
-    image:
-      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/bowagyu.avif", // Đường dẫn tới ảnh sản phẩm
-    sold: 150,
-    revenue: 75000000,
-  },
-  {
-    id: "SP002",
-    name: "Bánh mì lúa mạch",
-    image:
-      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/banhmiluamach.avif",
-    sold: 300,
-    revenue: 9000000,
-  },
-  {
-    id: "SP003",
-    name: "Dâu tây Đà Lạt",
-    image:
-      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/strawberry.jpg",
-    sold: 250,
-    revenue: 25000000,
-  },
-  {
-    id: "SP005",
-    name: "Bông cải xanh",
-    image:
-      "https://res.cloudinary.com/dswqplrdx/image/upload/v1716868822/market4p/bongcaixanh.png",
-    sold: 180,
-    revenue: 5400000,
-  },
-];
 // 4. Tùy chọn cho biểu đồ để thêm hiệu ứng
 const chartOptions = {
   responsive: true,
@@ -268,6 +234,57 @@ const itemVariants = {
 
 function DashboardHome() {
   const navigate = useNavigate();
+  const [topSellingProducts, setTopSellingProducts] = useState([]);
+  const [isLoadingTopProducts, setIsLoadingTopProducts] = useState(true);
+
+  useEffect(() => {
+    const fetchTopProducts = async () => {
+      setIsLoadingTopProducts(true);
+      try {
+        // Lấy tất cả đơn hàng và tất cả sản phẩm
+        // Tạm thời sử dụng dữ liệu mẫu vì apiService.getOrders() chưa tồn tại
+        const orders = initialOrders;
+        const productsRes = await apiService.getProducts();
+        const products = productsRes?.data || [];
+
+        // Tính toán số lượng đã bán cho mỗi sản phẩm từ các đơn hàng đã hoàn thành
+        const soldCount = {};
+        orders.forEach((order) => {
+          if (order.status === "Hoàn thành" && Array.isArray(order.items)) {
+            order.items.forEach((item) => {
+              // Tìm sản phẩm trong danh sách products để lấy ID
+              const product = products.find((p) => p.name === item.name);
+              const productId = product?._id;
+              if (productId) {
+                soldCount[productId] =
+                  (soldCount[productId] || 0) + item.quantity;
+              }
+            });
+          }
+        });
+
+        // Gắn số lượng đã bán vào danh sách sản phẩm và tính doanh thu
+        const productsWithStats = products.map((p) => ({
+          ...p,
+          sold: soldCount[p._id] || 0,
+          revenue: (soldCount[p._id] || 0) * p.price,
+        }));
+
+        // Sắp xếp và lấy top 4
+        const sortedProducts = productsWithStats
+          .sort((a, b) => b.sold - a.sold)
+          .slice(0, 4);
+
+        setTopSellingProducts(sortedProducts);
+      } catch (error) {
+        console.error("Failed to fetch top selling products:", error);
+        setTopSellingProducts([]);
+      } finally {
+        setIsLoadingTopProducts(false);
+      }
+    };
+    fetchTopProducts();
+  }, []);
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
@@ -446,30 +463,52 @@ function DashboardHome() {
               </tr>
             </thead>
             <tbody>
-              {topSellingProducts.map((product) => (
-                <tr
-                  key={product.id}
-                  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                >
-                  <th
-                    scope="row"
-                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img
-                        className="w-10 h-10 rounded-md object-cover"
-                        src={product.image}
-                        alt={product.name}
-                      />
-                      <span>{product.name}</span>
+              {isLoadingTopProducts ? (
+                <tr>
+                  <td colSpan="3" className="text-center py-6">
+                    <div className="flex justify-center items-center gap-2 text-gray-500">
+                      <div className="w-5 h-5 border-2 border-gray-300 border-t-amber-500 rounded-full animate-spin"></div>
+                      Đang tải...
                     </div>
-                  </th>
-                  <td className="px-6 py-4 text-center">{product.sold}</td>
-                  <td className="px-6 py-4 text-right">
-                    {product.revenue.toLocaleString("vi-VN")}đ
                   </td>
                 </tr>
-              ))}
+              ) : topSellingProducts.length > 0 ? (
+                topSellingProducts.map((product) => (
+                  <tr
+                    key={product._id || product.id}
+                    className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  >
+                    <th
+                      scope="row"
+                      className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                    >
+                      <div className="flex items-center gap-3">
+                        <img
+                          className="w-10 h-10 rounded-md object-cover"
+                          src={
+                            product.images?.[0]?.url ||
+                            "https://via.placeholder.com/40"
+                          }
+                          alt={product.name}
+                        />
+                        <span>{product.name}</span>
+                      </div>
+                    </th>
+                    <td className="px-6 py-4 text-center">
+                      {product.sold || 0}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {(product.revenue || 0).toLocaleString("vi-VN")}đ
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" className="text-center py-6 text-gray-500">
+                    Không có dữ liệu sản phẩm.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
