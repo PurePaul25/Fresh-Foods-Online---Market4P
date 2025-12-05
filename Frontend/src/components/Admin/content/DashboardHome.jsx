@@ -270,12 +270,32 @@ function DashboardHome() {
           revenue: (soldCount[p._id] || 0) * p.price,
         }));
 
-        // Sắp xếp và lấy top 4
-        const sortedProducts = productsWithStats
+        // --- Logic mới: Lấy top sản phẩm từ mỗi danh mục ---
+        // 1. Nhóm sản phẩm theo danh mục
+        const productsByCategory = productsWithStats.reduce((acc, product) => {
+          const category =
+            product.category_id?.name || product.category || "Chưa phân loại";
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+          acc[category].push(product);
+          return acc;
+        }, {});
+
+        // 2. Tìm sản phẩm bán chạy nhất trong mỗi danh mục
+        const topProductFromEachCategory = Object.values(productsByCategory)
+          .map(
+            (categoryProducts) =>
+              categoryProducts.sort((a, b) => b.sold - a.sold)[0]
+          )
+          .filter(Boolean); // Lọc ra các kết quả undefined (nếu có)
+
+        // 3. Sắp xếp các sản phẩm top của từng danh mục và lấy 4 sản phẩm đầu tiên
+        const finalTopProducts = topProductFromEachCategory
           .sort((a, b) => b.sold - a.sold)
           .slice(0, 4);
 
-        setTopSellingProducts(sortedProducts);
+        setTopSellingProducts(finalTopProducts);
       } catch (error) {
         console.error("Failed to fetch top selling products:", error);
         setTopSellingProducts([]);
