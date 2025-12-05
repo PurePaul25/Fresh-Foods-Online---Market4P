@@ -30,11 +30,29 @@ const upload = multer({
 // Export different upload configurations
 export const uploadSingle = upload.single('image');
 export const uploadMultiple = (req, res, next) => {
-  upload.array('images', 5)(req, res, function (err) {
-    // console.log('Multer files:', req.files); 
+  // Chấp nhận cả field name 'images' (mảng) và 'image' (1 file) từ frontend
+  const handler = upload.fields([
+    { name: 'images', maxCount: 5 },
+    { name: 'image', maxCount: 5 }
+  ]);
+
+  handler(req, res, function (err) {
     if (err) {
+      // Ví dụ: Unexpected field
       return next(err);
     }
+
+    // Chuẩn hóa về dạng mảng req.files cho controller sử dụng
+    const filesObj = req.files || {};
+    const allFiles = [];
+
+    Object.values(filesObj).forEach((arr) => {
+      if (Array.isArray(arr)) {
+        allFiles.push(...arr);
+      }
+    });
+
+    req.files = allFiles;
     next();
   });
 };

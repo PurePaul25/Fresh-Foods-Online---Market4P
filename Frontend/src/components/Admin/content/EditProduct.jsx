@@ -19,10 +19,7 @@ import {
 import toast from "react-hot-toast";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { mockProducts } from "../Layout/mockApi";
-
-// Giả lập danh sách danh mục, trong thực tế sẽ lấy từ API
-const categories = ["Trái cây", "Thịt", "Trứng", "Rau xanh", "Bánh mì", "Khác"];
+import apiService from "../../../services/api";
 
 // Component Input với Icon để tái sử dụng
 const FormInput = ({
@@ -60,18 +57,73 @@ const itemVariants = {
 
 function EditProduct() {
   const navigate = useNavigate();
-  const { productId } = useParams(); // Lấy ID sản phẩm từ URL
+  const { productId } = useParams();
+  const [categories, setCategories] = useState([]);
   const [product, setProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Fetch categories
   useEffect(() => {
-    // Giả lập việc fetch dữ liệu sản phẩm bằng ID
-    const productToEdit = mockProducts.find((p) => p.id === productId);
-    if (productToEdit) {
-      setProduct(productToEdit);
-      setImagePreview(productToEdit.img); // Hiển thị ảnh hiện tại
+    const fetchCategories = async () => {
+      try {
+        const defaultCategories = [
+          "Trái cây",
+          "Thịt",
+          "Trứng",
+          "Rau xanh",
+          "Bánh mì",
+          "Khác",
+        ];
+        setCategories(defaultCategories);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh mục:", error);
+        setCategories([
+          "Trái cây",
+          "Thịt",
+          "Trứng",
+          "Rau xanh",
+          "Bánh mì",
+          "Khác",
+        ]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Fetch product data
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setIsLoading(true);
+        const res = await apiService.getProductById(productId);
+        const prod = res?.data || res;
+        // Chuẩn hóa lại dữ liệu để form hiển thị đúng
+        const normalizedProduct = {
+          ...prod,
+          // Lấy tên danh mục/brand từ object populate nếu có
+          category: prod.category || prod.category_id?.name || "",
+          brand: prod.brand || prod.brand_id?.name || "",
+        };
+        setProduct(normalizedProduct);
+        // Ưu tiên ảnh từ mảng images của backend
+        setImagePreview(
+          prod?.images?.[0]?.url || prod?.img || prod?.image || null
+        );
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu sản phẩm:", error);
+        toast.error("Không thể tải thông tin sản phẩm");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (productId) {
+      fetchProduct();
     }
   }, [productId]);
 
@@ -79,31 +131,6 @@ function EditProduct() {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
-
-  // Lấy các giá trị cần thiết từ state product
-  const { stock, lowStockThreshold, status } = product || {};
-
-  // Tự động cập nhật trạng thái dựa trên tồn kho và ngưỡng
-  useEffect(() => {
-    // Chuyển đổi sang số, xử lý trường hợp chưa có giá trị
-    const currentStock = parseInt(stock, 10);
-    const currentThreshold = parseInt(lowStockThreshold, 10);
-
-    let newStatus = "Còn hàng";
-    if (isNaN(currentStock) || currentStock === 0) {
-      newStatus = "Hết hàng";
-    } else if (
-      currentStock > 0 &&
-      !isNaN(currentThreshold) &&
-      currentStock <= currentThreshold
-    ) {
-      newStatus = "Sắp hết hàng";
-    }
-
-    if (status !== newStatus) {
-      setProduct((prevProduct) => ({ ...prevProduct, status: newStatus }));
-    }
-  }, [stock, lowStockThreshold, status]); // Chỉ phụ thuộc vào các giá trị nguyên thủy
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -127,13 +154,15 @@ function EditProduct() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (
       !product.name ||
       !product.category ||
       !product.brand ||
       !product.price ||
+      product.stock === undefined ||
+      product.stock === "" ||
       !product.status
     ) {
       toast.error("Vui lòng điền đầy đủ các trường bắt buộc.");
@@ -144,37 +173,60 @@ function EditProduct() {
       return;
     }
 
-    // Giả lập quá trình cập nhật
-    const promise = new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("Đã cập nhật sản phẩm:", {
-          ...product,
-          image: imageFile ? imageFile.name : " giữ nguyên",
-        });
-        resolve();
-      }, 1500);
-    });
+    setIsSubmitting(true);
+    const promise = (async () => {
+      try {
+        const formData = new FormData();
+        formData.append("name", product.name);
+        formData.append("category", product.category);
+        formData.append("brand", product.brand);
+        formData.append("price", parseInt(product.price, 10));
+        formData.append("discount", parseInt(product.discount, 10) || 0);
+        formData.append("description", product.description);
+        formData.append("stock", parseInt(product.stock, 10));
+        formData.append("status", product.status);
+        if (imageFile) {
+          formData.append("image", imageFile);
+        }
+
+        await apiService.updateProduct(productId, formData);
+        navigate("/admin/dashboard/products");
+      } catch (error) {
+        console.error("Lỗi khi cập nhật sản phẩm:", error);
+        throw error;
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
 
     toast.promise(promise, {
       loading: "Đang cập nhật sản phẩm...",
-      success: () => {
-        navigate("/admin/dashboard/products");
-        return <b>Sản phẩm đã được cập nhật thành công!</b>;
-      },
-      error: <b>Không thể cập nhật sản phẩm.</b>,
+      success: <b>Sản phẩm đã được cập nhật thành công!</b>,
+      error: <b>Không thể cập nhật sản phẩm. Vui lòng thử lại!</b>,
     });
   };
 
   if (!product) {
     return (
       <div className="text-center py-10 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-        <Frown className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-gray-200">
-          Không tìm thấy sản phẩm
-        </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Sản phẩm với ID "{productId}" không tồn tại hoặc đã bị xóa.
-        </p>
+        {isLoading ? (
+          <>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">
+              Đang tải dữ liệu...
+            </p>
+          </>
+        ) : (
+          <>
+            <Frown className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-gray-200">
+              Không tìm thấy sản phẩm
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Sản phẩm với ID "{productId}" không tồn tại hoặc đã bị xóa.
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -270,6 +322,51 @@ function EditProduct() {
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="stock"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
+                  >
+                    Số lượng
+                  </label>
+                  <FormInput
+                    id="stock"
+                    name="stock"
+                    type="number"
+                    value={product.stock ?? ""}
+                    onChange={handleInputChange}
+                    placeholder="Ví dụ: 100"
+                    min="0"
+                    icon={<Package size={18} />}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="status"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
+                  >
+                    Trạng thái
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Activity size={18} />
+                    </div>
+                    <select
+                      id="status"
+                      name="status"
+                      value={product.status || "Còn hàng"}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-3 py-2 transition duration-200 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-amber-500"
+                    >
+                      <option value="Còn hàng">Còn hàng</option>
+                      <option value="Sắp hết hàng">Sắp hết hàng</option>
+                      <option value="Hết hàng">Hết hàng</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </fieldset>
 
             <fieldset className="space-y-6">
@@ -317,49 +414,7 @@ function EditProduct() {
               </div>
             </fieldset>
 
-            <fieldset className="space-y-6">
-              <legend className="block text-base font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                Quản lý kho
-              </legend>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    htmlFor="stock"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
-                  >
-                    Tồn kho
-                  </label>
-                  <FormInput
-                    id="stock"
-                    name="stock"
-                    type="number"
-                    value={product.stock ?? ""}
-                    onChange={handleInputChange}
-                    placeholder="Ví dụ: 100"
-                    min="0"
-                    icon={<Package size={18} />}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="lowStockThreshold"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
-                  >
-                    Ngưỡng sắp hết
-                  </label>
-                  <FormInput
-                    id="lowStockThreshold"
-                    name="lowStockThreshold"
-                    type="number"
-                    value={product.lowStockThreshold ?? ""}
-                    onChange={handleInputChange}
-                    placeholder="Ví dụ: 10"
-                    min="0"
-                    icon={<AlertTriangle size={18} />}
-                  />
-                </div>
-              </div>
-            </fieldset>
+            {/* Bỏ phần Quản lý kho cũ, vì số lượng & trạng thái đã đưa lên trên */}
           </div>
 
           {/* Cột hình ảnh */}
@@ -407,6 +462,7 @@ function EditProduct() {
             </div>
             <input
               type="file"
+              name="image"
               ref={fileInputRef}
               onChange={handleImageChange}
               className="hidden"
@@ -449,9 +505,10 @@ function EditProduct() {
           </button>
           <button
             type="submit"
-            className="flex items-center cursor-pointer gap-2 px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            disabled={isSubmitting}
+            className="flex items-center cursor-pointer gap-2 px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save size={16} /> Lưu thay đổi
+            <Save size={16} /> {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
           </button>
         </div>
       </motion.form>

@@ -18,9 +18,7 @@ import {
 import toast from "react-hot-toast";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-
-// Giả lập danh sách danh mục, trong thực tế sẽ lấy từ API
-const categories = ["Trái cây", "Thịt", "Trứng", "Rau xanh", "Bánh mì", "Khác"];
+import apiService from "../../../services/api";
 
 // Component Input với Icon để tái sử dụng
 const FormInput = ({
@@ -58,6 +56,8 @@ const itemVariants = {
 
 function AddProduct() {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [product, setProduct] = useState({
     name: "",
     category: "",
@@ -66,35 +66,46 @@ function AddProduct() {
     discount: "",
     description: "",
     stock: "",
-    lowStockThreshold: "",
-    status: "Còn hàng", // Thêm trạng thái mặc định
+    status: "Còn hàng",
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Fetch categories từ API (nếu có)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        // Nếu backend không có endpoint categories, sử dụng danh sách hardcode
+        const defaultCategories = [
+          "Trái cây",
+          "Thịt",
+          "Trứng",
+          "Rau xanh",
+          "Bánh mì",
+          "Khác",
+        ];
+        setCategories(defaultCategories);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh mục:", error);
+        setCategories([
+          "Trái cây",
+          "Thịt",
+          "Trứng",
+          "Rau xanh",
+          "Bánh mì",
+          "Khác",
+        ]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
-
-  // Tự động cập nhật trạng thái dựa trên tồn kho và ngưỡng
-  useEffect(() => {
-    const stock = parseInt(product.stock, 10);
-    const threshold = parseInt(product.lowStockThreshold, 10);
-
-    // isNaN(stock) để xử lý khi người dùng xóa sạch input
-    let newStatus = "Còn hàng";
-    if (isNaN(stock) || stock === 0) {
-      newStatus = "Hết hàng";
-    } else if (stock > 0 && !isNaN(threshold) && stock <= threshold) {
-      newStatus = "Sắp hết hàng";
-    }
-
-    if (product.status !== newStatus) {
-      setProduct((prevProduct) => ({ ...prevProduct, status: newStatus }));
-    }
-  }, [product.stock, product.lowStockThreshold, product.status]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -118,16 +129,15 @@ function AddProduct() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Validate form
     if (
       !product.name ||
       !product.category ||
       !product.brand ||
-      !product.price || // price có thể là 0
-      product.stock === "" || // stock có thể là 0
-      product.lowStockThreshold === "" ||
+      !product.price ||
+      product.stock === "" ||
       !product.status
     ) {
       toast.error("Vui lòng điền đầy đủ các trường bắt buộc!");
@@ -138,27 +148,37 @@ function AddProduct() {
       return;
     }
 
-    // Giả lập quá trình lưu
-    const promise = new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("Đã lưu sản phẩm:", {
-          ...product,
-          stock: parseInt(product.stock, 10) || 0,
-          discount: product.discount || 0,
-          lowStockThreshold: parseInt(product.lowStockThreshold, 10) || 0,
-          image: imageFile.name,
-        });
-        resolve();
-      }, 1500);
-    });
+    setIsSubmitting(true);
+    const promise = (async () => {
+      try {
+        // Tạo FormData để upload ảnh
+        const formData = new FormData();
+        formData.append("name", product.name);
+        formData.append("category", product.category);
+        formData.append("brand", product.brand);
+        formData.append("price", parseInt(product.price, 10));
+        formData.append("discount", parseInt(product.discount, 10) || 0);
+        formData.append("description", product.description);
+        formData.append("stock", parseInt(product.stock, 10));
+        formData.append("status", product.status);
+        if (imageFile) {
+          formData.append("image", imageFile);
+        }
+
+        await apiService.createProduct(formData);
+        navigate("/admin/dashboard/products");
+      } catch (error) {
+        console.error("Lỗi khi thêm sản phẩm:", error);
+        throw error;
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
 
     toast.promise(promise, {
       loading: "Đang thêm sản phẩm...",
-      success: () => {
-        navigate("/admin/dashboard/products");
-        return <b>Sản phẩm đã được thêm thành công!</b>;
-      },
-      error: <b>Không thể thêm sản phẩm.</b>,
+      success: <b>Sản phẩm đã được thêm thành công!</b>,
+      error: <b>Không thể thêm sản phẩm. Vui lòng thử lại!</b>,
     });
   };
 
@@ -253,6 +273,51 @@ function AddProduct() {
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label
+                    htmlFor="stock"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
+                  >
+                    Số lượng
+                  </label>
+                  <FormInput
+                    id="stock"
+                    name="stock"
+                    type="number"
+                    value={product.stock}
+                    onChange={handleInputChange}
+                    placeholder="Ví dụ: 100"
+                    min="0"
+                    icon={<Package size={18} />}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="status"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
+                  >
+                    Trạng thái
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Activity size={18} />
+                    </div>
+                    <select
+                      id="status"
+                      name="status"
+                      value={product.status}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-3 py-2 transition duration-200 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-amber-500"
+                    >
+                      <option value="Còn hàng">Còn hàng</option>
+                      <option value="Sắp hết hàng">Sắp hết hàng</option>
+                      <option value="Hết hàng">Hết hàng</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </fieldset>
 
             <fieldset className="space-y-6">
@@ -300,49 +365,7 @@ function AddProduct() {
               </div>
             </fieldset>
 
-            <fieldset className="space-y-6">
-              <legend className="block text-base font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                Quản lý kho
-              </legend>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    htmlFor="stock"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
-                  >
-                    Tồn kho ban đầu
-                  </label>
-                  <FormInput
-                    id="stock"
-                    name="stock"
-                    type="number"
-                    value={product.stock}
-                    onChange={handleInputChange}
-                    placeholder="Ví dụ: 100"
-                    min="0"
-                    icon={<Package size={18} />}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="lowStockThreshold"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
-                  >
-                    Ngưỡng sắp hết
-                  </label>
-                  <FormInput
-                    id="lowStockThreshold"
-                    name="lowStockThreshold"
-                    type="number"
-                    value={product.lowStockThreshold}
-                    onChange={handleInputChange}
-                    placeholder="Ví dụ: 10"
-                    min="0"
-                    icon={<AlertTriangle size={18} />}
-                  />
-                </div>
-              </div>
-            </fieldset>
+            {/* Bỏ phần Quản lý kho cũ, vì số lượng & trạng thái đã đưa lên trên */}
           </div>
 
           {/* Cột hình ảnh */}
@@ -390,6 +413,7 @@ function AddProduct() {
             </div>
             <input
               type="file"
+              name="image"
               ref={fileInputRef}
               onChange={handleImageChange}
               className="hidden"
@@ -432,9 +456,10 @@ function AddProduct() {
           </button>
           <button
             type="submit"
-            className="flex items-center cursor-pointer gap-2 px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            disabled={isSubmitting}
+            className="flex items-center cursor-pointer gap-2 px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save size={16} /> Lưu sản phẩm
+            <Save size={16} /> {isSubmitting ? "Đang lưu..." : "Lưu sản phẩm"}
           </button>
         </div>
       </motion.form>
