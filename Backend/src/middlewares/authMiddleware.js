@@ -41,34 +41,98 @@ export const protectedRoute = (req, res, next) => {
   }
 };
 
+// export const authenticate = async (req, res, next) => {
+//   try {
+//     // Get token from Authorization header
+//     const authHeader = req.headers.authorization;
+
+//     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+//       throw new ApiError(401, 'Access token is required');
+//     }
+
+//     const token = authHeader.split(' ')[1];
+
+//     // Verify token
+//     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+//     // Attach user info to request object
+//     req.user = {
+//       id: decoded.userId || decoded.id,
+//       role: decoded.role || 'user'
+//     };
+
+//     next();
+//   } catch (error) {
+//     if (error.name === 'JsonWebTokenError') {
+//       return next(new ApiError(401, 'Invalid token'));
+//     }
+//     if (error.name === 'TokenExpiredError') {
+//       return next(new ApiError(401, 'Token expired'));
+//     }
+//     next(error);
+//   }
+// };
+
 export const authenticate = async (req, res, next) => {
   try {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new ApiError(401, 'Access token is required');
+      throw new ApiError(401, 'Access token is required. Please login');
     }
 
+    // Extract token
     const token = authHeader.split(' ')[1];
 
+    if (!token) {
+      throw new ApiError(401, 'Access token is required. Please login');
+    }
+
     // Verify token
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    } catch (error) {
+      if (error.name === 'JsonWebTokenError') {
+        throw new ApiError(401, 'Invalid token. Please login again');
+      }
+      if (error.name === 'TokenExpiredError') {
+        throw new ApiError(401, 'Token expired. Please login again');
+      }
+      throw new ApiError(401, 'Authentication failed');
+    }
+
+    // Get user from token
+    const userId = decoded.userId || decoded.id;
+
+    // Verify user still exists and check ban status
+    const user = await User.findById(userId).select('-password');
+
+    if (!user) {
+      throw new ApiError(401, 'User no longer exists. Please login again');
+    }
+
+    // ===== CRITICAL: CHECK IF USER IS BANNED =====
+    if (user.isBanned) {
+      throw new ApiError(403, `Tài khoản của bạn đã bị chặn. Lý do: ${user.bannedReason || 'Không có lý do cụ thể'}`);
+    }
+    // =============================================
+
+    if (user.role !== "admin" && !user.isActive) {
+      throw new ApiError(403, 'Your account has been deactivated');
+    }
 
     // Attach user info to request object
     req.user = {
-      id: decoded.userId || decoded.id,
-      role: decoded.role || 'user'
+      id: userId,
+      role: decoded.role || user.role,
+      email: user.email,
+      name: user.name
     };
 
     next();
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return next(new ApiError(401, 'Invalid token'));
-    }
-    if (error.name === 'TokenExpiredError') {
-      return next(new ApiError(401, 'Token expired'));
-    }
     next(error);
   }
 };
