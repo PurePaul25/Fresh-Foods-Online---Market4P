@@ -1,13 +1,15 @@
-import { Send } from "lucide-react";
+import { Send, Store } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <div>
-      <div className="p-20 flex  justify-between gap-x-10 bg-[#051922] text-white">
-        <div className="w-100">
+    <footer className="bg-[#051922] text-white">
+      <div className="p-6 lg:p-20 flex flex-col lg:flex-row justify-between gap-10 lg:gap-x-10">
+        {/* Cột 1: Về chúng tôi */}
+        <div className="lg:w-1/3">
           <h1 className="text-xl font-semibold">Về Chúng tôi</h1>
-          <div className="w-full h-0.5 my-3 bg-amber-600"></div>
-          <p className="text-gray-400 text-justify">
+          <div className="w-20 h-0.5 my-3 bg-amber-600"></div>
+          <p className="text-gray-400 text-left lg:text-justify">
             Chúng tôi là đội ngũ đam mê mang đến những sản phẩm chất lượng, dịch
             vụ tận tâm và trải nghiệm tốt nhất cho khách hàng.
             <br />
@@ -15,42 +17,43 @@ const Footer = () => {
             để xây dựng thương hiệu uy tín và đáng tin cậy.
           </p>
         </div>
-        <div className="w-100">
+        {/* Cột 2: Đăng ký */}
+        <div className="lg:w-1/3">
           <h1 className="text-xl font-semibold">Đăng ký</h1>
-          <div className="w-full h-0.5 my-3 bg-amber-600"></div>
+          <div className="w-20 h-0.5 my-3 bg-amber-600"></div>
           <div className="text-gray-400">
             Đăng ký để nhận những thông tin mới nhất từ chúng tôi.
             <br />
-            <div className="flex items-center gap-x-1 mt-4">
+            <form className="flex items-center mt-4 rounded-lg overflow-hidden">
               <input
                 type="email"
                 placeholder="Email"
-                className="w-full px-3 py-4 bg-[#012738] outline-none"
+                className="w-full px-4 py-3 bg-[#012738] outline-none placeholder-gray-500"
               />
-              <div className="p-4 hover:cursor-pointer hover:opacity-80 text-amber-600 bg-[#012738]">
-                <Send></Send>
-              </div>
-            </div>
+              <button
+                type="submit"
+                className="p-4 hover:cursor-pointer hover:bg-amber-700 text-white bg-amber-600 transition-colors"
+              >
+                <Send size={20}></Send>
+              </button>
+            </form>
           </div>
         </div>
-        <div className="w-100">
+        {/* Cột 3: Hợp tác */}
+        <div className="lg:w-1/3">
           <h1 className="text-xl font-semibold">Hợp tác</h1>
-          <div className="w-full h-0.5 my-3 bg-amber-600"></div>
-          <div className="text-gray-400">
+          <div className="w-20 h-0.5 my-3 bg-amber-600"></div>
+          <div className="text-gray-400 space-y-3">
             UTH, Binh Thanh, Ho Chi Minh City
-            <br />
-            <br />
             <a
               href="mailto:abc@market4p.com"
-              className="inline-block hover:text-amber-600 hover:translate-x-2 transition-all duration-300"
+              className="block hover:text-amber-600 transition-colors"
             >
               abc@market4p.com
             </a>
-            <br />
-            <br />
             <a
               href="tel:+84123456789"
-              className="inline-block hover:text-amber-600 hover:translate-x-2 transition-all duration-300"
+              className="block hover:text-amber-600 transition-colors"
             >
               +84 123 456 789
             </a>
@@ -58,13 +61,13 @@ const Footer = () => {
         </div>
       </div>
       {/* Copyright */}
-      <div className="flex items-center justify-center px-20 py-5 bg-[#051922] text-white border-t border-t-[#383636]">
-        <div>
+      <div className="px-6 lg:px-20 py-5 bg-[#051922] text-white border-t border-t-white/10 text-center text-sm">
+        <p>
           Copyrights © 2025 - <span className="text-amber-600">Market4P, </span>
           All Rights Reserved.
-        </div>
+        </p>
       </div>
-    </div>
+    </footer>
   );
 };
 

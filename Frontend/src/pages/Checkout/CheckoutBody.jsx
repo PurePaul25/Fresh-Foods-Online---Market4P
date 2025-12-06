@@ -240,10 +240,10 @@ export default function CheckoutBody() {
           <div className="lg:col-span-2 space-y-6">
             <div
               ref={shippingRef}
-              className={`bg-white rounded-2xl shadow-sm border border-stone-100 p-6 transition-all duration-700 hover:shadow-lg ${
+              className={`bg-white rounded-2xl shadow-sm border border-stone-100 p-6 transition-all duration-700 ease-out hover:shadow-lg ${
                 shippingVisible
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-12"
+                  ? "opacity-100 translate-y-0 lg:translate-x-0"
+                  : "opacity-0 translate-y-12 lg:translate-y-0 lg:-translate-x-12"
               }`}
             >
               <h2 className="text-xl font-bold text-stone-800 mb-6 flex items-center gap-2">
@@ -388,10 +388,10 @@ export default function CheckoutBody() {
 
             <div
               ref={paymentRef}
-              className={`bg-white rounded-2xl shadow-sm border border-stone-100 p-6 transition-all duration-700 delay-200 hover:shadow-lg ${
+              className={`bg-white rounded-2xl shadow-sm border border-stone-100 p-6 transition-all duration-700 ease-out delay-200 hover:shadow-lg ${
                 paymentVisible
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-12"
+                  ? "opacity-100 translate-y-0 lg:translate-x-0"
+                  : "opacity-0 translate-y-12 lg:translate-y-0 lg:-translate-x-12"
               }`}
             >
               <h2 className="text-xl font-bold text-stone-800 mb-6 flex items-center gap-2">
@@ -446,10 +446,10 @@ export default function CheckoutBody() {
           <div className="lg:col-span-1">
             <div
               ref={summaryRef}
-              className={`bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sticky top-4 transition-all duration-700 delay-300 hover:shadow-lg ${
+              className={`bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sticky top-28 transition-all duration-700 ease-out delay-300 hover:shadow-lg ${
                 summaryVisible
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 translate-x-12"
+                  ? "opacity-100 translate-y-0 lg:translate-x-0"
+                  : "opacity-0 translate-y-12 lg:translate-y-0 lg:translate-x-12"
               }`}
             >
               <h2 className="text-xl font-bold text-stone-800 mb-6">

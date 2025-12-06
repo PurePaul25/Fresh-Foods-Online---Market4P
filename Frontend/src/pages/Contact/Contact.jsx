@@ -65,7 +65,7 @@ function Contact() {
 
       <div className="pt-19">
         {/* Main Content Section */}
-        <div className="p-16 md:p-20 px-4 sm:px-8 md:px-20 lg:px-32 grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="pt-8 pb-16 md:p-20 px-4 sm:px-8 md:px-20 lg:px-32 grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Form với animation */}
           <div
             ref={formRef} // Form Section

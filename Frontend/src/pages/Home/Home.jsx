@@ -84,52 +84,52 @@ function Home() {
           alt="Trang chủ"
           className="w-full h-screen object-cover"
         />
-        <div className="absolute inset-0 bg-black/40"></div>
-
-        {/* Banner text với animation */}
-        <div
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center font-bold transition-all duration-1000 ${
-            heroVisible
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-10"
-          }`}
-        >
-          <p
-            className={`text-amber-600 text-xl transition-all duration-700 delay-200 ${
-              heroVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 -translate-y-4"
-            }`}
-          >
-            Tươi & Sạch
-          </p>
-          <p
-            className={`text-5xl text-white my-1 transition-all duration-700 delay-400 ${
-              heroVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
-            }`}
-          >
-            Trái cây ngon theo mùa
-          </p>
-
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4">
+          {/* Container này sẽ được căn giữa bởi div cha */}
           <div
-            className={`flex items-center justify-center font-semibold gap-x-3 text-white mt-6 transition-all duration-700 delay-600 ${
+            className={`text-center font-bold transition-all duration-1000 ${
               heroVisible
                 ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-4"
+                : "opacity-0 translate-y-10"
             }`}
           >
-            <NavLink
-              to="/shop"
-              className="bg-amber-600 py-3 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+            <p
+              className={`text-amber-600 text-xl transition-all duration-700 delay-200 ${
+                heroVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 -translate-y-4"
+              }`}
             >
-              Đi đến cửa hàng
-            </NavLink>
-            <NavLink
-              to="/contact"
-              className="bg-amber-600 py-3 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+              Tươi & Sạch
+            </p>
+            <p
+              className={`text-4xl md:text-5xl text-white my-2 transition-all duration-700 delay-400 ${
+                heroVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+              }`}
             >
-              Liên hệ với chúng tôi
-            </NavLink>
+              Trái cây ngon theo mùa
+            </p>
+
+            <div
+              className={`flex flex-col sm:flex-row items-center justify-center font-semibold gap-4 text-white mt-6 transition-all duration-700 delay-600 ${
+                heroVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-4"
+              }`}
+            >
+              <NavLink
+                to="/shop"
+                className="w-3/4 sm:w-auto text-center bg-amber-600 py-3 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+              >
+                Đi đến cửa hàng
+              </NavLink>
+              <NavLink
+                to="/contact"
+                className="w-3/4 sm:w-auto text-center bg-amber-600 py-3 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+              >
+                Liên hệ với chúng tôi
+              </NavLink>
+            </div>
           </div>
         </div>
       </div>
@@ -138,7 +138,7 @@ function Home() {
         {/* Dịch vụ với animation */}
         <div
           ref={servicesRef}
-          className="p-20 bg-gray-100 flex items-center justify-around"
+          className="p-8 md:p-20 bg-gray-100 flex flex-col md:flex-row items-start md:items-center justify-around gap-10 md:gap-4"
         >
           {services.map((service, index) => {
             const Icon = service.icon;
@@ -165,7 +165,7 @@ function Home() {
         </div>
 
         {/* Sản phẩm nổi bật với animation */}
-        <div ref={productsRef} className="p-20">
+        <div ref={productsRef} className="p-8 md:p-20">
           <div
             className={`text-center mb-10 transition-all duration-700 ${
               productsVisible
@@ -186,11 +186,11 @@ function Home() {
             </p>
           </div>
 
-          <div className="flex items-center justify-evenly">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, index) => (
               <div
                 key={index}
-                className={`shadow-lg p-10 hover:cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ${
+                className={`shadow-lg p-6 md:p-10 hover:cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 flex flex-col ${
                   productsVisible
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-12"
@@ -201,20 +201,20 @@ function Home() {
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="object-cover w-70 h-70 transition-transform duration-500 hover:scale-110"
+                    className="object-cover w-full h-auto transition-transform duration-500 hover:scale-110"
                   />
                 </div>
-                <div className="text-center">
+                <div className="text-center flex-grow flex flex-col">
                   <p className="text-xl font-bold mt-4">{product.name}</p>
                   <p className="my-3">Per Kg</p>
                   <p className="text-2xl font-bold text-amber-600">
                     {product.price.toLocaleString("vi-VN")}đ
                   </p>
                 </div>
-                <div className="flex justify-center">
+                <div className="flex justify-center mt-auto pt-4">
                   <NavLink
                     to="/shop"
-                    className="bg-amber-600 py-2 mt-1 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+                    className="bg-amber-600 text-white py-2 mt-1 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
                   >
                     Đi đến cửa hàng
                   </NavLink>
@@ -227,20 +227,20 @@ function Home() {
         {/* Giảm giá với animation */}
         <div
           ref={promoRef}
-          className="p-20 flex items-center gap-x-4 pl-52 bg-gray-100"
+          className="px-8 py-12 md:p-20 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 bg-gray-100"
         >
           <div
-            className={`relative transition-all duration-700 ${
+            className={`relative transition-all duration-700 ease-out ${
               promoVisible
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-12"
+                ? "opacity-100 translate-y-0 lg:translate-x-0"
+                : "opacity-0 translate-y-12 lg:translate-y-0 lg:-translate-x-12"
             }`}
           >
             <div className="overflow-hidden rounded-xl">
               <img
                 src={HIKANstrawberry}
                 alt="Dâu tây HIKAN"
-                className="object-cover min-w-130 transition-transform duration-700 hover:scale-105"
+                className="object-cover w-full h-auto rounded-2xl shadow-xl transition-transform duration-700 hover:scale-105"
               />
             </div>
             <div className="absolute top-4 left-4 p-6 bg-amber-600 rounded-full border-4 border-orange-300 animate-pulse">
@@ -252,14 +252,14 @@ function Home() {
             </div>
           </div>
 
-          <div
-            className={`text-start transition-all duration-700 delay-300 ${
+          <div // Container cho text
+            className={`text-center lg:text-left transition-all duration-700 ease-out delay-200 lg:delay-300 ${
               promoVisible
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 translate-x-12"
+                ? "opacity-100 translate-y-0 lg:translate-x-0"
+                : "opacity-0 translate-y-12 lg:translate-y-0 lg:translate-x-12"
             }`}
           >
-            <p className="text-4xl font-bold flex gap-x-2">
+            <p className="text-4xl font-bold flex justify-center lg:justify-start gap-x-2">
               <span className="text-amber-600">Siêu</span>
               giảm giá
             </p>
@@ -278,7 +278,7 @@ function Home() {
             <div className="mt-7">
               <NavLink
                 to="/shop"
-                className="bg-amber-600 py-2 mt-1 px-5 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+                className="bg-amber-600 text-white py-3 px-6 rounded-full hover:cursor-pointer hover:brightness-90 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
               >
                 Đi đến cửa hàng
               </NavLink>

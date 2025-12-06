@@ -241,7 +241,7 @@ function Shop() {
             <span className="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
               Ưu đãi đặc biệt hôm nay
             </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
               Thực phẩm tươi sạch
               <br />
               <span className="text-amber-900">Giao tận nhà</span>
@@ -274,11 +274,11 @@ function Shop() {
 
         {/* Categories Section */}
         <section ref={categoryRef} className="px-6 md:px-16 lg:px-32 py-12">
-          <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 relative inline-block">
             Danh mục sản phẩm
-            <span className="absolute -bottom-2 left-0 w-16 h-1 bg-amber-600 rounded-full"></span>
+            <span className="absolute -bottom-2 left-0 w-full h-1 bg-amber-600 rounded-full"></span>
           </h2>
-          <p className="text-gray-500 mt-4">
+          <p className="text-gray-500 text-sm sm:text-base mt-4">
             Nhấn vào danh mục để xem sản phẩm
           </p>
 
@@ -312,11 +312,11 @@ function Shop() {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 relative inline-block">
                 🔥 Đang giảm giá
-                <span className="absolute -bottom-2 left-0 w-16 h-1 bg-red-500 rounded-full"></span>
+                <span className="absolute -bottom-2 left-0 w-full h-1 bg-red-500 rounded-full"></span>
               </h2>
-              <p className="text-gray-600 mt-2">
+              <p className="text-gray-600 text-sm sm:text-base mt-2">
                 Giảm giá sốc - Mua ngay kẻo lỡ!
               </p>
             </div>
@@ -400,9 +400,9 @@ function Shop() {
 
         {/* Best Selling Section */}
         <section ref={bestSellingRef} className="px-6 md:px-16 lg:px-32 py-12">
-          <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 relative inline-block">
             Bán chạy nhất
-            <span className="absolute -bottom-2 left-0 w-16 h-1 bg-amber-600 rounded-full"></span>
+            <span className="absolute -bottom-2 left-0 w-full h-1 bg-amber-600 rounded-full"></span>
           </h2>
 
           {bestSelling.length === 0 ? (
@@ -473,7 +473,7 @@ function Shop() {
         >
           <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
             Sản phẩm mới
-            <span className="absolute -bottom-2 left-0 w-16 h-1 bg-amber-600 rounded-full"></span>
+            <span className="absolute -bottom-2 left-0 w-full h-1 bg-amber-600 rounded-full"></span>
           </h2>
 
           {newArrivals.length === 0 ? (

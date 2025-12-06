@@ -86,9 +86,12 @@ function About() {
 
       <div className="pt-19">
         {/* Why Section */}
-        <div ref={whyRef} className="flex items-center p-20 pl-40 gap-x-8">
+        <div
+          ref={whyRef}
+          className="flex flex-col lg:flex-row items-center p-8 md:p-20 gap-12"
+        >
           {/* Text Section */}
-          <div className="flex flex-col gap-10 w-1/2">
+          <div className="flex flex-col gap-10 w-full lg:w-1/2">
             <h2
               className={`text-4xl font-bold transition-all duration-700 ${
                 whyVisible
@@ -101,14 +104,17 @@ function About() {
             </h2>
 
             {features.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex justify-between gap-8">
+              <div
+                key={rowIndex}
+                className="flex flex-col sm:flex-row justify-between gap-8"
+              >
                 {row.map((feature, index) => {
                   const Icon = feature.icon;
                   const delay = (rowIndex * 2 + index) * 150;
                   return (
                     <div
                       key={index}
-                      className={`flex items-start gap-4 w-1/2 transition-all duration-500 hover:translate-x-2 ${
+                      className={`flex items-start gap-4 w-full sm:w-1/2 transition-all duration-500 hover:translate-x-2 ${
                         whyVisible
                           ? "opacity-100 translate-y-0"
                           : "opacity-0 translate-y-8"
@@ -133,7 +139,7 @@ function About() {
 
           {/* Image Section */}
           <div
-            className={`w-1/2 flex justify-center transition-all duration-700 delay-500 ${
+            className={`w-full lg:w-1/2 flex justify-center transition-all duration-700 delay-500 ${
               whyVisible
                 ? "opacity-100 translate-x-0"
                 : "opacity-0 translate-x-12"
@@ -143,16 +149,16 @@ function About() {
               <img
                 src={featureBg}
                 alt="Feature Background"
-                className="object-cover w-140 transition-transform duration-700 hover:scale-105"
+                className="object-cover w-full max-w-md lg:max-w-full transition-transform duration-700 hover:scale-105"
               />
             </div>
           </div>
         </div>
 
         {/* Team Section */}
-        <div ref={teamRef} className="p-20 bg-gray-100">
+        <div ref={teamRef} className="p-8 md:p-20 bg-gray-100">
           <div
-            className={`text-center w-210 mx-auto transition-all duration-700 ${
+            className={`text-center max-w-3xl mx-auto transition-all duration-700 ${
               teamVisible
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 -translate-y-8"
@@ -160,7 +166,7 @@ function About() {
           >
             <h1 className="text-3xl font-bold">
               Đội ngũ
-              <span className="text-amber-600 ml-1">chúng tôi</span>
+              <span className="text-amber-600 ml-2">chúng tôi</span>
             </h1>
             <p className="leading-relaxed mt-4">
               Chúng tôi là một tập thể trẻ trung, sáng tạo và đầy nhiệt huyết.
@@ -169,7 +175,7 @@ function About() {
               cho khách hàng.
             </p>
           </div>
-          <div className="flex items-center justify-center gap-x-15 mt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
             {team.map((member, index) => (
               <div
                 key={index}
@@ -178,12 +184,13 @@ function About() {
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-12"
                 }`}
+                style={{ transitionDelay: `${index * 150}ms` }}
               >
                 <div className="relative inline-block">
                   <img
                     src={member.avt}
                     alt={member.name}
-                    className="w-40 h-40 object-cover rounded-full border-4 border-white shadow-md transition-transform duration-500 group-hover:scale-105"
+                    className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-full border-4 border-white shadow-md transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 rounded-full border-4 border-transparent group-hover:border-amber-500 transition-all duration-300"></div>
                 </div>
