@@ -8,7 +8,7 @@ const Footer = () => {
         {/* Cột 1: Về chúng tôi */}
         <div className="lg:w-1/3">
           <h1 className="text-xl font-semibold">Về Chúng tôi</h1>
-          <div className="w-20 h-0.5 my-3 bg-amber-600"></div>
+          <div className="w-full h-0.5 my-3 bg-amber-600"></div>
           <p className="text-gray-400 text-left lg:text-justify">
             Chúng tôi là đội ngũ đam mê mang đến những sản phẩm chất lượng, dịch
             vụ tận tâm và trải nghiệm tốt nhất cho khách hàng.
@@ -20,7 +20,7 @@ const Footer = () => {
         {/* Cột 2: Đăng ký */}
         <div className="lg:w-1/3">
           <h1 className="text-xl font-semibold">Đăng ký</h1>
-          <div className="w-20 h-0.5 my-3 bg-amber-600"></div>
+          <div className="w-full h-0.5 my-3 bg-amber-600"></div>
           <div className="text-gray-400">
             Đăng ký để nhận những thông tin mới nhất từ chúng tôi.
             <br />
@@ -42,7 +42,7 @@ const Footer = () => {
         {/* Cột 3: Hợp tác */}
         <div className="lg:w-1/3">
           <h1 className="text-xl font-semibold">Hợp tác</h1>
-          <div className="w-20 h-0.5 my-3 bg-amber-600"></div>
+          <div className="w-full h-0.5 my-3 bg-amber-600"></div>
           <div className="text-gray-400 space-y-3">
             UTH, Binh Thanh, Ho Chi Minh City
             <a
