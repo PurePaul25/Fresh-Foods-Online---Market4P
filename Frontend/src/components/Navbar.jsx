@@ -140,9 +140,7 @@ function Navbar() {
           className="p-2 hover:text-amber-600 hover:cursor-pointer transition-all duration-300 hover:scale-110 relative group"
         >
           <ShoppingCart size={22} />
-          <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold animate-pulse">
-            3
-          </span>
+
         </NavLink>
 
         {/* Notification Bell */}

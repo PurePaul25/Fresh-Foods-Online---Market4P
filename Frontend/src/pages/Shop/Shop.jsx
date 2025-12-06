@@ -287,31 +287,46 @@ function Shop() {
         </section>
 
         {/* Sale Section - FIXED: bg-linear-to-r */}
-        <section ref={bestSellingRef} className="px-6 md:px-16 lg:px-32 py-12">
-          <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-            Đang giảm giá
-            <span className="absolute -bottom-2 left-0 w-16 h-1 bg-amber-600 rounded-full"></span>
-          </h2>
+        <section ref={saleRef} className="px-6 md:px-16 lg:px-32 py-12 bg-gradient-to-br from-red-50 to-orange-50">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+                🔥 Đang giảm giá
+                <span className="absolute -bottom-2 left-0 w-16 h-1 bg-red-500 rounded-full"></span>
+              </h2>
+              <p className="text-gray-600 mt-2">Giảm giá sốc - Mua ngay kẻo lỡ!</p>
+            </div>
+            {saleProducts.length > 0 && (
+              <div className="bg-red-500 text-white px-4 py-2 rounded-full font-bold text-sm">
+                {saleProducts.length} sản phẩm
+              </div>
+            )}
+          </div>
 
-          {bestSelling.length === 0 ? (
-            <div className="mt-10 text-center text-gray-500">
-              <p>Chưa có sản phẩm bán chạy.</p>
+          {saleProducts.length === 0 ? (
+            <div className="mt-10 text-center py-12 bg-white rounded-2xl shadow-md">
+              <div className="text-6xl mb-4">🛍️</div>
+              <p className="text-gray-500 text-lg">Hiện chưa có sản phẩm giảm giá.</p>
+              <p className="text-gray-400 text-sm mt-2">Hãy quay lại sau để không bỏ lỡ ưu đãi!</p>
             </div>
           ) : (
             <div className="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-              {bestSelling.map((product) => (
+              {saleProducts.map((product) => (
                 <div
                   key={product._id || product.id}
-                  className="group bg-white rounded-2xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden"
+                  className="group bg-white rounded-2xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden border-2 border-red-200"
                 >
-                  {product.discount > 0 && (
-                    <div className="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-lg">
-                      -{product.discount}%
-                    </div>
-                  )}
+                  {/* Discount badge */}
+                  <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full z-10 shadow-lg animate-pulse">
+                    -{product.discount}%
+                  </div>
 
-                  {/* FIXED: bg-linear-to-b */}
-                  <div className="flex justify-center overflow-hidden rounded-xl bg-linear-to-b from-gray-50 to-gray-100 p-4">
+                  {/* Hot badge */}
+                  <div className="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10 shadow-lg">
+                    🔥 HOT
+                  </div>
+
+                  <div className="flex justify-center overflow-hidden rounded-xl bg-gradient-to-b from-red-50 to-orange-50 p-4 mt-4">
                     <img
                       src={getProductImage(product) || "/placeholder.svg"}
                       alt={product.name}
@@ -320,20 +335,20 @@ function Shop() {
                   </div>
 
                   <div className="text-center mt-4">
-                    <p className="text-base font-medium text-gray-800 group-hover:text-amber-600 transition-colors duration-300 line-clamp-2">
+                    <p className="text-base font-medium text-gray-800 group-hover:text-red-600 transition-colors duration-300 line-clamp-2">
                       {product.name}
                     </p>
                     <div className="mt-2 flex items-center justify-center gap-2 flex-wrap">
-                      {product.discount > 0 ? (
-                        <>
-                          <span className="text-lg font-bold text-amber-600">
-                            {(product.price * (1 - product.discount / 100)).toLocaleString()}đ
-                          </span>
-                          <span className="text-sm text-gray-400 line-through">{product.price.toLocaleString()}đ</span>
-                        </>
-                      ) : (
-                        <span className="text-lg font-bold text-amber-600">{product.price.toLocaleString()}đ</span>
-                      )}
+                      <span className="text-lg font-bold text-red-600">
+                        {(product.price * (1 - product.discount / 100)).toLocaleString()}đ
+                      </span>
+                      <span className="text-sm text-gray-400 line-through">
+                        {product.price.toLocaleString()}đ
+                      </span>
+                    </div>
+                    {/* Tiết kiệm */}
+                    <div className="mt-1 text-xs text-green-600 font-medium">
+                      Tiết kiệm {(product.price * product.discount / 100).toLocaleString()}đ
                     </div>
                   </div>
 

@@ -367,11 +367,11 @@ function AllNotifications() {
           prev.map((item) =>
             item._id === editingAnnouncement._id
               ? {
-                  ...item,
-                  title: newAnnouncement.title,
-                  message: newAnnouncement.message,
-                  priority: newAnnouncement.priority,
-                }
+                ...item,
+                title: newAnnouncement.title,
+                message: newAnnouncement.message,
+                priority: newAnnouncement.priority,
+              }
               : item
           )
         );
@@ -466,22 +466,20 @@ function AllNotifications() {
       <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
         <button
           onClick={() => setActiveTab("system")}
-          className={`flex items-center cursor-pointer gap-2 py-3 px-4 text-sm font-medium transition-colors ${
-            activeTab === "system"
-              ? "border-b-2 border-amber-500 text-amber-600 dark:text-amber-400"
-              : "border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          }`}
+          className={`flex items-center cursor-pointer gap-2 py-3 px-4 text-sm font-medium transition-colors ${activeTab === "system"
+            ? "border-b-2 border-amber-500 text-amber-600 dark:text-amber-400"
+            : "border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
         >
           <Bell size={18} />
           Thông báo hệ thống
         </button>
         <button
           onClick={() => setActiveTab("broadcast")}
-          className={`flex items-center cursor-pointer gap-2 py-3 px-4 text-sm font-medium transition-colors ${
-            activeTab === "broadcast"
-              ? "border-b-2 border-amber-500 text-amber-600 dark:text-amber-400"
-              : "border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          }`}
+          className={`flex items-center cursor-pointer gap-2 py-3 px-4 text-sm font-medium transition-colors ${activeTab === "broadcast"
+            ? "border-b-2 border-amber-500 text-amber-600 dark:text-amber-400"
+            : "border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            }`}
         >
           <Megaphone size={18} />
           Gửi thông báo chung
@@ -532,20 +530,18 @@ function AllNotifications() {
                   <button
                     key={option.value}
                     onClick={() => handleFilterChange(option.value)}
-                    className={`relative flex items-center cursor-pointer gap-2 px-3 py-1.5 text-sm font-medium rounded-full transition-colors duration-200 ${
-                      filterType === option.value
-                        ? "bg-amber-500 text-white shadow-md"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                    }`}
+                    className={`relative flex items-center cursor-pointer gap-2 px-3 py-1.5 text-sm font-medium rounded-full transition-colors duration-200 ${filterType === option.value
+                      ? "bg-amber-500 text-white shadow-md"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                      }`}
                   >
                     {option.icon}
                     <span>{option.label}</span>
                     <span
-                      className={`ml-1 px-1.5 py-0.5 text-xs rounded-full ${
-                        filterType === option.value
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-300 text-gray-600 dark:bg-gray-600 dark:text-gray-100"
-                      }`}
+                      className={`ml-1 px-1.5 py-0.5 text-xs rounded-full ${filterType === option.value
+                        ? "bg-white/20 text-white"
+                        : "bg-gray-300 text-gray-600 dark:bg-gray-600 dark:text-gray-100"
+                        }`}
                     >
                       {notificationCounts[option.value]}
                     </span>
@@ -567,17 +563,15 @@ function AllNotifications() {
                           transition: { duration: 0.3 },
                         }}
                         key={notif._id}
-                        className={`relative group flex items-start gap-4 p-4 rounded-lg border transition-colors duration-200 ${
-                          notif.isRead
-                            ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
-                            : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                        }`}
+                        className={`relative group flex items-start gap-4 p-4 rounded-lg border transition-colors duration-200 ${notif.isRead
+                          ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
+                          : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                          }`}
                       >
                         <div
                           onClick={() => handleNotificationClick(notif._id)}
-                          className={`grow flex items-start gap-4 ${
-                            !notif.isRead ? "cursor-pointer" : ""
-                          }`}
+                          className={`grow flex items-start gap-4 ${!notif.isRead ? "cursor-pointer" : ""
+                            }`}
                         >
                           <div className="shrink-0 mt-1">
                             {getNotificationIcon(notif.type)}
@@ -747,8 +741,8 @@ function AllNotifications() {
                       {isSending
                         ? "Đang xử lý..."
                         : editingAnnouncement
-                        ? "Cập nhật"
-                        : "Gửi đi"}
+                          ? "Cập nhật"
+                          : "Gửi đi"}
                     </button>
                   </div>
                 </form>

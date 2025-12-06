@@ -1,368 +1,343 @@
-import { useEffect, useState, useCallback } from "react";
-import { toast } from "react-hot-toast";
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from "framer-motion";
-import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale";
-import {
-  Bell,
-  Package,
-  CheckCheck,
-  Truck,
-  PartyPopper,
-  XCircle,
-  Trash2,
-  MailCheck,
-  ChevronLeft,
-  ChevronRight,
-  Inbox,
-} from "lucide-react";
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   fetchUserNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-  deleteSingleNotification,
-  deleteAllNotifications,
-} from "../../services/notificationService";
-import Navbar from "../Navbar";
-import Footer from "../Footer";
+  deleteNotification,
+} from "../../services/notificationService"
+import { Bell, Check, CheckCheck, Trash2, RefreshCw, AlertCircle, Sparkles } from "lucide-react"
+import Navbar from '../../components/Navbar'
+import Footer from '../../components/Footer'
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [filterType, setFilterType] = useState("all");
-  const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const limit = 10;
+  const navigate = useNavigate()
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [filter, setFilter] = useState("all")
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState(null)
 
-  // Tải thông báo
   const loadNotifications = useCallback(async () => {
-    setLoading(true);
     try {
-      const response = await fetchUserNotifications(filterType, page, limit);
+      setLoading(true)
+      setError(null)
 
-      if (response.success) {
-        setNotifications(response.data);
-        setPagination(response.pagination);
-      } else {
-        toast.error("Không thể tải thông báo");
+      console.log("[v0] Fetching notifications with filter:", filter, "page:", page)
+      const response = await fetchUserNotifications(filter, page, 10)
+      console.log("[v0] Full API response:", response)
+      console.log("[v0] Response type:", typeof response)
+      console.log("[v0] Response keys:", response ? Object.keys(response) : "null")
+
+      if (response.error) {
+        console.log("[v0] Response has error:", response.error, response.message)
+        if (response.message?.includes("access token") || response.status === 401) {
+          setError("Vui lòng đăng nhập để xem thông báo")
+          setTimeout(() => navigate("/login"), 2000)
+          return
+        }
+        setError(response.message || "Có lỗi xảy ra")
+        return
       }
-    } catch (error) {
-      console.error("Error loading notifications:", error);
-      toast.error("Lỗi khi tải thông báo");
+
+      const notificationData = response.notifications || response.data?.notifications || response.data || []
+      console.log("[v0] Notification data extracted:", notificationData)
+      console.log("[v0] Notification count:", notificationData.length)
+
+      setNotifications(notificationData)
+      setPagination(response.pagination || response.data?.pagination || null)
+    } catch (err) {
+      console.error("[v0] Error loading notifications:", err)
+      if (err.message?.includes("access token") || err.status === 401) {
+        setError("Vui lòng đăng nhập để xem thông báo")
+        setTimeout(() => navigate("/login"), 2000)
+      } else {
+        setError(err.message || "Không thể tải thông báo")
+      }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [filterType, page]);
+  }, [filter, page, navigate])
 
   useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
+    loadNotifications()
+  }, [loadNotifications])
 
-  // Đánh dấu là đã đọc
-  const handleMarkAsRead = async (notificationId) => {
+  const handleMarkAsRead = async (id) => {
     try {
-      const response = await markNotificationAsRead(notificationId);
-
-      if (response.success) {
-        setNotifications((prev) =>
-          prev.map((notif) =>
-            notif._id === notificationId ? { ...notif, isRead: true } : notif
-          )
-        );
-        toast.success("Đã đánh dấu là đã đọc");
-      }
-    } catch (error) {
-      console.error("Error marking as read:", error);
-      toast.error("Không thể đánh dấu");
+      await markNotificationAsRead(id)
+      setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)))
+    } catch (err) {
+      console.error("Error marking as read:", err)
     }
-  };
+  }
 
-  // Đánh dấu tất cả là đã đọc
   const handleMarkAllAsRead = async () => {
     try {
-      const response = await markAllNotificationsAsRead();
-
-      if (response.success) {
-        setNotifications((prev) =>
-          prev.map((notif) => ({ ...notif, isRead: true }))
-        );
-        toast.success("Đã đánh dấu tất cả");
-      }
-    } catch (error) {
-      console.error("Error marking all as read:", error);
-      toast.error("Không thể đánh dấu tất cả");
+      await markAllNotificationsAsRead()
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
+    } catch (err) {
+      console.error("Error marking all as read:", err)
     }
-  };
+  }
 
-  // Xóa thông báo
-  const handleDeleteSingleNotification = async (notificationId) => {
+  const handleDelete = async (id) => {
     try {
-      const response = await deleteSingleNotification(notificationId);
-
-      if (response.success) {
-        setNotifications((prev) =>
-          prev.filter((notif) => notif._id !== notificationId)
-        );
-        toast.success("Đã xóa thông báo");
-      }
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-      toast.error("Không thể xóa thông báo");
+      await deleteNotification(id)
+      setNotifications((prev) => prev.filter((n) => n._id !== id))
+    } catch (err) {
+      console.error("Error deleting notification:", err)
     }
-  };
+  }
 
-  // Xóa tất cả
-  const handleDeleteAll = async () => {
-    if (window.confirm("Bạn có chắc muốn xóa tất cả thông báo?")) {
-      try {
-        const response = await deleteAllNotifications();
-
-        if (response.success) {
-          setNotifications([]);
-          toast.success("Đã xóa tất cả thông báo");
-        }
-      } catch (error) {
-        console.error("Error deleting all notifications:", error);
-        toast.error("Không thể xóa tất cả");
-      }
-    }
-  };
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
 
   const getNotificationIcon = (type) => {
     switch (type) {
       case "broadcast":
-        return <Bell className="text-yellow-500" />;
-      case "order_placed":
-        return <Package className="text-blue-500" />;
-      case "order_confirmed":
-        return <CheckCheck className="text-green-500" />;
-      case "order_shipped":
-        return <Truck className="text-purple-500" />;
-      case "order_delivered":
-        return <PartyPopper className="text-teal-500" />;
-      case "order_cancelled":
-        return <XCircle className="text-red-500" />;
+        return <Sparkles className="w-5 h-5 text-amber-600" />
+      case "order":
+        return <Bell className="w-5 h-5 text-amber-600" />
+      case "promotion":
+        return <Sparkles className="w-5 h-5 text-amber-600" />
       default:
-        return <Bell className="text-gray-500" />;
+        return <Bell className="w-5 h-5 text-amber-600" />
     }
-  };
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-amber-50 via-white to-orange-50 p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white border-2 border-red-200 rounded-2xl p-8 text-center shadow-lg">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Có lỗi xảy ra</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={() => navigate("/login")}
+              className="px-6 py-3 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg"
+            >
+              Đăng nhập ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-amber-50 via-white to-orange-50 p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
+              <Bell className="w-6 h-6 text-amber-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <span className="mt-4 text-gray-600 font-medium">Đang tải thông báo...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const unreadCount = notifications.filter(n => !n.isRead).length
 
   return (
-    <>
-      <Navbar />
-      <main className="pt-30 pb-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div>
+      <Navbar></Navbar>
+      <div className="pt-25  min-h-screen bg-linear-to-br from-amber-50 via-white to-orange-50 p-6">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8 text-center"
-          >
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              Hộp thư thông báo
-            </h1>
-            <p className="text-gray-500">
-              Theo dõi cập nhật đơn hàng và các thông báo quan trọng từ Market4P
-            </p>
-          </motion.div>
-
-          {/* Filter Section */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-6 flex flex-wrap gap-2"
-          >
-            {[
-              { value: "all", label: "Tất cả" },
-              { value: "broadcast", label: "Chung" },
-              { value: "order_placed", label: "Đặt hàng" },
-              { value: "order_confirmed", label: "Xác nhận" },
-              { value: "order_shipped", label: "Đang giao" },
-              { value: "order_delivered", label: "Đã giao" },
-              { value: "order_cancelled", label: "Hủy" },
-            ].map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => {
-                  setFilterType(filter.value);
-                  setPage(1);
-                }}
-                className={`px-4 py-2 text-sm cursor-pointer font-medium rounded-full transition-colors duration-200 ${
-                  filterType === filter.value
-                    ? "bg-amber-500 text-white shadow"
-                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100 hover:border-gray-300"
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </motion.div>
-
-          {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mb-6 flex justify-end gap-3"
-          >
-            <button
-              onClick={handleMarkAllAsRead}
-              disabled={notifications.length === 0}
-              className="flex items-center gap-2 cursor-pointer duration-200 px-4 py-2 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-            >
-              <MailCheck size={16} /> Đánh dấu tất cả đã đọc
-            </button>
-            <button
-              onClick={handleDeleteAll}
-              disabled={notifications.length === 0}
-              className="flex items-center gap-2 cursor-pointer duration-200 px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-            >
-              <Trash2 size={16} /> Xóa tất cả
-            </button>
-          </motion.div>
-
-          {/* Notifications List */}
-          <div className="space-y-4">
-            {loading ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-12"
-              >
-                <div className="inline-block">
-                  <div className="animate-spin">
-                    <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full"></div>
+          <div className="bg-white rounded-2xl shadow-lg border border-amber-100 p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-linear-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-md">
+                    <Bell className="w-6 h-6 text-white" />
                   </div>
+                  {unreadCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white">
+                      {unreadCount}
+                    </div>
+                  )}
                 </div>
-                <p className="mt-4 text-gray-600">Đang tải thông báo...</p>
-              </motion.div>
-            ) : notifications.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300"
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800">Thông báo</h1>
+                  <p className="text-sm text-gray-500">
+                    {unreadCount > 0 ? `${unreadCount} thông báo chưa đọc` : "Tất cả đã đọc"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleMarkAllAsRead}
+                className="flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg"
               >
-                <Inbox className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="text-gray-700 text-lg mt-4 font-medium">
-                  Bạn không có thông báo nào
-                </p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Tất cả các thông báo sẽ hiển thị ở đây
-                </p>
-              </motion.div>
-            ) : (
-              <AnimatePresence>
-                {notifications.map((notification, index) => (
-                  <motion.div
-                    key={notification._id}
-                    layout
-                    initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -50, transition: { duration: 0.2 } }}
-                    transition={{ delay: index * 0.05 }}
-                    className={`relative group p-4 rounded-lg border transition-all duration-300 shadow-sm ${
-                      notification.isRead
-                        ? "bg-white border-gray-200"
-                        : "bg-amber-50/50 border-amber-200"
+                <CheckCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Đánh dấu tất cả</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Filter tabs */}
+          <div className="bg-white rounded-2xl shadow-lg border border-amber-100 p-4 mb-6">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "all", label: "Tất cả", icon: Bell },
+                { value: "broadcast", label: "Thông báo chung", icon: Sparkles },
+                { value: "order", label: "Đơn hàng", icon: Bell },
+                { value: "promotion", label: "Khuyến mãi", icon: Sparkles }
+              ].map(({ value, label, icon: Icon }) => (
+                <button
+                  key={value}
+                  onClick={() => {
+                    setFilter(value)
+                    setPage(1)
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${filter === value
+                    ? "bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-md"
+                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                     }`}
-                  >
-                    <div className="flex items-start gap-4">
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notifications list */}
+          <div className="space-y-4">
+            {notifications.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-lg border border-amber-100 p-12 text-center">
+                <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Bell className="w-10 h-10 text-amber-300" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Không có thông báo</h3>
+                <p className="text-gray-500">Bạn chưa có thông báo nào trong mục này</p>
+              </div>
+            ) : (
+              notifications.map((notification) => (
+                <div
+                  key={notification._id}
+                  className={`bg-white rounded-2xl shadow-lg border transition-all duration-200 hover:shadow-xl ${notification.isRead
+                    ? "border-gray-200"
+                    : "border-amber-300 bg-linear-to-r from-amber-50 to-white"
+                    }`}
+                >
+                  <div className="p-6">
+                    <div className="flex gap-4">
                       {/* Icon */}
-                      <div className="text-2xl mt-1 shrink-0 w-8 h-8 flex items-center justify-center bg-white rounded-full border">
+                      <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${notification.isRead ? "bg-gray-100" : "bg-amber-100"
+                        }`}>
                         {getNotificationIcon(notification.type)}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="text-base font-semibold text-gray-800">
-                            {notification.title}
-                          </h3>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 mb-1">{notification.title}</h3>
+                            <p className="text-gray-600 text-sm leading-relaxed">{notification.message}</p>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex gap-1">
+                            {!notification.isRead && (
+                              <button
+                                onClick={() => handleMarkAsRead(notification._id)}
+                                className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                title="Đánh dấu đã đọc"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDelete(notification._id)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Xóa"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Meta info */}
+                        <div className="flex items-center gap-3 mt-3">
+                          <span className="text-xs text-gray-500">{formatDate(notification.createdAt)}</span>
+                          {notification.type === "broadcast" && (
+                            <span className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium">
+                              Thông báo chung
+                            </span>
+                          )}
+                          {notification.type === "promotion" && (
+                            <span className="px-2.5 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium">
+                              Khuyến mãi
+                            </span>
+                          )}
+                          {notification.type === "order" && (
+                            <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium">
+                              Đơn hàng
+                            </span>
+                          )}
                           {!notification.isRead && (
-                            <div className="shrink-0 w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse"></div>
+                            <span className="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-medium">
+                              Chưa đọc
+                            </span>
                           )}
                         </div>
-                        <p className="text-gray-600 text-sm mt-1">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">
-                          {formatDistanceToNow(
-                            new Date(notification.createdAt),
-                            {
-                              addSuffix: true,
-                              locale: vi,
-                            }
-                          )}
-                        </p>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="shrink-0 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        {!notification.isRead && (
-                          <button
-                            onClick={() => handleMarkAsRead(notification._id)}
-                            className="p-1.5 rounded-full text-gray-400 hover:bg-green-100 hover:text-green-600 transition-colors"
-                            title="Đánh dấu đã đọc"
-                          >
-                            <MailCheck size={16} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() =>
-                            handleDeleteSingleNotification(notification._id)
-                          }
-                          className="p-1.5 rounded-full text-gray-400 hover:bg-red-100 hover:text-red-600 transition-colors"
-                          title="Xóa thông báo"
-                        >
-                          <Trash2 size={16} />
-                        </button>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                  </div>
+                </div>
+              ))
             )}
           </div>
 
           {/* Pagination */}
-          {pagination.pages > 1 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mt-8 flex justify-between items-center"
-            >
-              <button
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-                className="flex items-center gap-2 cursor-pointer duration-200 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              >
-                <ChevronLeft size={16} />
-                Trang trước
-              </button>
-
-              <span className="text-sm text-gray-600">
-                Trang <span className="font-semibold">{pagination.page}</span> /{" "}
-                <span className="font-semibold">{pagination.pages}</span>
-              </span>
-
-              <button
-                onClick={() => setPage(Math.min(pagination.pages, page + 1))}
-                disabled={page === pagination.pages}
-                className="flex items-center gap-2 cursor-pointer duration-200 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              >
-                Trang sau
-                <ChevronRight size={16} />
-              </button>
-            </motion.div>
+          {pagination && pagination.totalPages > 1 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-amber-100 p-4 mt-6">
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                >
+                  Trước
+                </button>
+                <div className="px-4 py-2 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium text-sm shadow-md">
+                  {page} / {pagination.totalPages}
+                </div>
+                <button
+                  onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                  disabled={page === pagination.totalPages}
+                  className="px-4 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                >
+                  Sau
+                </button>
+              </div>
+            </div>
           )}
         </div>
-      </main>
-      <Footer />
-    </>
-  );
-};
+      </div>
+      <Footer></Footer>
+    </div>
 
-export default Notifications;
+  )
+}
+
+export default Notifications
