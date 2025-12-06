@@ -1,7 +1,7 @@
 // @ts-nocheck
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import ApiError from '../utils/ApiError.js';
+import ApiError from "../utils/ApiError.js";
 
 // authorization - xác minh user là ai
 export const protectedRoute = (req, res, next) => {
@@ -15,26 +15,32 @@ export const protectedRoute = (req, res, next) => {
     }
 
     // xác nhận token hợp lệ
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decodedUser) => {
-      if (err) {
-        console.error(err);
+    jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET,
+      async (err, decodedUser) => {
+        if (err) {
+          console.error(err);
 
-        return res
-          .status(403)
-          .json({ message: "Access token hết hạn hoặc không đúng" });
+          return res
+            .status(403)
+            .json({ message: "Access token hết hạn hoặc không đúng" });
+        }
+
+        // tìm user
+        const user = await User.findById(decodedUser.userId).select(
+          "-hashedPassword"
+        );
+
+        if (!user) {
+          return res.status(404).json({ message: "người dùng không tồn tại." });
+        }
+
+        // trả user về trong req
+        req.user = user;
+        next();
       }
-
-      // tìm user
-      const user = await User.findById(decodedUser.userId).select("-hashedPassword");
-
-      if (!user) {
-        return res.status(404).json({ message: "người dùng không tồn tại." });
-      }
-
-      // trả user về trong req
-      req.user = user;
-      next();
-    });
+    );
   } catch (error) {
     console.error("Lỗi khi xác minh JWT trong authMiddleware", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
@@ -78,15 +84,15 @@ export const authenticate = async (req, res, next) => {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new ApiError(401, 'Access token is required. Please login');
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new ApiError(401, "Access token is required. Please login");
     }
 
     // Extract token
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
 
     if (!token) {
-      throw new ApiError(401, 'Access token is required. Please login');
+      throw new ApiError(401, "Access token is required. Please login");
     }
 
     // Verify token
@@ -94,33 +100,38 @@ export const authenticate = async (req, res, next) => {
     try {
       decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     } catch (error) {
-      if (error.name === 'JsonWebTokenError') {
-        throw new ApiError(401, 'Invalid token. Please login again');
+      if (error.name === "JsonWebTokenError") {
+        throw new ApiError(401, "Invalid token. Please login again");
       }
-      if (error.name === 'TokenExpiredError') {
-        throw new ApiError(401, 'Token expired. Please login again');
+      if (error.name === "TokenExpiredError") {
+        throw new ApiError(401, "Token expired. Please login again");
       }
-      throw new ApiError(401, 'Authentication failed');
+      throw new ApiError(401, "Authentication failed");
     }
 
     // Get user from token
     const userId = decoded.userId || decoded.id;
 
     // Verify user still exists and check ban status
-    const user = await User.findById(userId).select('-password');
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      throw new ApiError(401, 'User no longer exists. Please login again');
+      throw new ApiError(401, "User no longer exists. Please login again");
     }
 
     // ===== CRITICAL: CHECK IF USER IS BANNED =====
     if (user.isBanned) {
-      throw new ApiError(403, `Tài khoản của bạn đã bị chặn. Lý do: ${user.bannedReason || 'Không có lý do cụ thể'}`);
+      throw new ApiError(
+        403,
+        `Tài khoản của bạn đã bị chặn. Lý do: ${
+          user.bannedReason || "Không có lý do cụ thể"
+        }`
+      );
     }
     // =============================================
 
     if (user.role !== "admin" && !user.isActive) {
-      throw new ApiError(403, 'Your account has been deactivated');
+      throw new ApiError(403, "Your account has been deactivated");
     }
 
     // Attach user info to request object
@@ -128,8 +139,10 @@ export const authenticate = async (req, res, next) => {
       id: userId,
       role: decoded.role || user.role,
       email: user.email,
-      name: user.name
+      name: user.name,
     };
+
+    console.log("Authenticated user:", req.user);
 
     next();
   } catch (error) {

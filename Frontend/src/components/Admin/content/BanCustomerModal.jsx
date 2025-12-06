@@ -29,7 +29,7 @@ function BanCustomerModal({ isOpen, onClose, onConfirm, customerName }) {
           htmlFor="ban-reason"
           className="block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
-          Lý do cấm (không bắt buộc)
+          Lý do cấm (bắt buộc)
         </label>
         <textarea
           id="ban-reason"

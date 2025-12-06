@@ -96,6 +96,7 @@ export const getUserById = async (req, res, next) => {
  */
 export const banUser = async (req, res, next) => {
   try {
+    console.log("test");
     const { id } = req.params;
     const { reason } = req.body;
     const adminId = req.user.id;
@@ -153,7 +154,14 @@ export const banUser = async (req, res, next) => {
       data: updatedUser,
     });
   } catch (error) {
-    next(error);
+    console.error("ERROR MIDDLEWARE >>>", error);
+
+    const statusCode = error.statusCode || error.status || 500;
+
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
   }
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 // eslint-disable-next-line no-unused-vars
@@ -105,10 +105,10 @@ function Customers() {
   const [error, setError] = useState(null);
 
   // Fetch customers từ API
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      setIsLoading(true);
-      setError(null);
       const response = await apiService.getCustomers({
         page: currentPage,
         limit: itemsPerPage,
@@ -116,23 +116,28 @@ function Customers() {
       });
 
       if (response.success && response.data) {
+        console.log("Fetched customers:", response.data);
         setCustomers(response.data);
       } else {
-        setError("Failed to fetch customers");
+        // Giả sử API trả về một message lỗi
+        const errorMessage = response.message || "Failed to fetch customers";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error fetching customers:", err);
-      setError(err.message || "Failed to fetch customers");
+      const errorMessage = err.message || "An unexpected error occurred";
+      setError(errorMessage);
       toast.error("Lỗi tải danh sách khách hàng");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, searchTerm]);
 
   // Fetch data khi component mount và khi có thay đổi search/page
   useEffect(() => {
     fetchCustomers();
-  }, [currentPage, searchTerm, itemsPerPage]);
+  }, [fetchCustomers]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
