@@ -26,6 +26,19 @@ import PaymentQR from "../../components/payMentQR";
 import toast from "react-hot-toast";
 import apiService from "../../services/api.js";
 
+// Helper function to get product image
+const getProductImage = (product) => {
+  if (!product) return "/placeholder.svg";
+  if (product.image) return product.image;
+  if (product.images && product.images.length > 0) {
+    const firstImage = product.images[0];
+    if (typeof firstImage === "string") return firstImage;
+    if (firstImage?.url) return firstImage.url;
+    if (firstImage?.image) return firstImage.image;
+  }
+  return "/placeholder.svg";
+};
+
 function useScrollAnimation(threshold = 0.1) {
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -104,8 +117,15 @@ export default function CheckoutBody() {
   );
   const shippingFee =
     shippingOptions.find((s) => s.id === shippingMethod)?.price || 0;
-  const discount = appliedCoupon ? Math.round(subtotal * 0.1) : 0;
-  const total = subtotal + shippingFee - discount;
+  const discountValue = appliedCoupon ? subtotal * appliedCoupon.discount : 0;
+  const total = subtotal + shippingFee - discountValue;
+
+  const validCoupons = {
+    FRESH10: { discount: 0.1, message: "Giảm giá 10% cho đơn hàng" },
+    FRESH20: { discount: 0.2, message: "Giảm giá 20% cho đơn hàng" },
+    MARKET4P: { discount: 0.15, message: "Giảm giá 15% cho đơn hàng" },
+    SAVE10: { discount: 0.1, message: "Giảm giá 10% cho đơn hàng" },
+  };
 
   // Format tiền VND
   const formatPrice = (price) => {
@@ -128,8 +148,14 @@ export default function CheckoutBody() {
 
   // Xử lý mã giảm giá
   const applyCoupon = () => {
-    if (couponCode.toLowerCase() === "fresh10") {
-      setAppliedCoupon("FRESH10");
+    const code = couponCode.toUpperCase();
+    if (validCoupons[code]) {
+      setAppliedCoupon({ code: code, discount: validCoupons[code].discount });
+      toast.success(`Áp dụng mã ${code} thành công!`);
+    } else {
+      setAppliedCoupon(null);
+      toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
+      setCouponCode("");
     }
   };
 
@@ -464,7 +490,7 @@ export default function CheckoutBody() {
                     className="flex gap-3 p-3 bg-stone-50 rounded-xl"
                   >
                     <img
-                      src={item.image || "/placeholder.svg"}
+                      src={getProductImage(item)}
                       alt={item.name}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
@@ -528,7 +554,7 @@ export default function CheckoutBody() {
                 </div>
                 {appliedCoupon && (
                   <p className="text-green-600 text-xs mt-2">
-                    ✓ Đã áp dụng mã {appliedCoupon}
+                    ✓ Đã áp dụng mã {appliedCoupon.code}
                   </p>
                 )}
               </div>
@@ -546,7 +572,7 @@ export default function CheckoutBody() {
                 {appliedCoupon && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span>Giảm giá</span>
-                    <span>-{formatPrice(discount)}</span>
+                    <span>-{formatPrice(discountValue)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-lg font-bold text-stone-800 border-t border-stone-100 pt-3">

@@ -129,7 +129,12 @@ export const getUserOrders = async (req, res, next) => {
     if (status) filter.status = status;
 
     const [orders, total] = await Promise.all([
-      Order.find(filter).sort({ created_at: -1 }).skip(skip).limit(limitNum),
+      Order.find(filter)
+        .populate("items.product_id", "name images")
+        .populate("user_id", "displayName email phone")
+        .sort({ created_at: -1 })
+        .skip(skip)
+        .limit(limitNum),
       Order.countDocuments(filter),
     ]);
 

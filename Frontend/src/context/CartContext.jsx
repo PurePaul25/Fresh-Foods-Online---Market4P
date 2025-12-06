@@ -8,14 +8,44 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = (product) => {
         setCartItems((prevItems) => {
-            const existingItem = prevItems.find((item) => item.id === product.id)
-            if (existingItem) {
-                return prevItems.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
+            // Sử dụng _id hoặc id để tìm sản phẩm, đảm bảo mỗi sản phẩm có id duy nhất
+            const productId = product._id || product.id
+            if (!productId) {
+                // Nếu không có id, tạo một id tạm thời dựa trên timestamp
+                const tempId = `temp_${Date.now()}_${Math.random()}`
+                return [
+                    ...prevItems,
+                    {
+                        ...product,
+                        id: tempId,
+                        _id: tempId,
+                        quantity: 1,
+                    },
+                ]
             }
+            
+            const existingItem = prevItems.find((item) => {
+                const itemId = item._id || item.id
+                return itemId === productId
+            })
+            
+            if (existingItem) {
+                // Nếu sản phẩm đã có trong giỏ, tăng số lượng
+                return prevItems.map((item) => {
+                    const itemId = item._id || item.id
+                    return itemId === productId 
+                        ? { ...item, quantity: item.quantity + 1 } 
+                        : item
+                })
+            }
+            
+            // Thêm sản phẩm mới vào giỏ
             return [
                 ...prevItems,
                 {
                     ...product,
+                    id: productId,
+                    _id: productId,
                     quantity: 1,
                     // Giữ nguyên price gốc và discount từ shop, KHÔNG tính trước
                 },
@@ -24,7 +54,12 @@ export const CartProvider = ({ children }) => {
     }
 
     const removeFromCart = (productId) => {
-        setCartItems((prevItems) => prevItems.filter((item) => item.id !== productId))
+        setCartItems((prevItems) => 
+            prevItems.filter((item) => {
+                const itemId = item._id || item.id
+                return itemId !== productId
+            })
+        )
     }
 
     const updateQuantity = (productId, newQuantity) => {
@@ -33,7 +68,10 @@ export const CartProvider = ({ children }) => {
             return
         }
         setCartItems((prevItems) =>
-            prevItems.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item)),
+            prevItems.map((item) => {
+                const itemId = item._id || item.id
+                return itemId === productId ? { ...item, quantity: newQuantity } : item
+            }),
         )
     }
 
