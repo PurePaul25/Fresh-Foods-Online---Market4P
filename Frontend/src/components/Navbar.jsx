@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import UserInfor from "../components/common/UserInfor";
 import { fetchUserNotifications } from "../services/notificationService";
-import toast from "react-hot-toast";
+import userAvatar from "../assets/images/userAvatar.png"; // 1. Import ảnh avatar
 
 function Navbar() {
   const navigate = useNavigate();
@@ -21,7 +21,6 @@ function Navbar() {
   const [notifications, setNotifications] = useState([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [user, setUser] = useState(null);
-  const [userAvatar, setUserAvatar] = useState(null);
 
   // Auto-refresh notifications every 30 seconds when user is logged in
   useEffect(() => {
@@ -45,8 +44,6 @@ function Navbar() {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-        // Nếu có avatarUrl, sử dụng; nếu không dùng placeholder
-        setUserAvatar(parsedUser.avatarUrl || "/placeholder.svg");
         // Auto load notifications khi user login
         loadNotifications();
       } catch (error) {
@@ -79,13 +76,12 @@ function Navbar() {
     setShowUserMenu(false);
     // Xóa thông tin user trong state & localStorage
     setUser(null);
-    setUserAvatar(null);
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
-    // Hiển thị toast trong 4 giây rồi tự tắt
-    toast.success("Đăng xuất thành công!", { duration: 4000 });
+    // Lưu thông báo vào sessionStorage để hiển thị sau khi navigate
+    sessionStorage.setItem("logoutSuccessMessage", "Đăng xuất thành công!");
     // Điều hướng về trang chủ sau khi đăng xuất
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   const handleLoginClick = () => {
@@ -94,7 +90,10 @@ function Navbar() {
 
   return (
     <main className="fixed z-50 left-0 right-0 flex justify-between items-center px-10 py-4 font-semibold text-white bg-[#051922] shadow-lg transition-all duration-300">
-      <div className="flex gap-x-0.5 items-center text-amber-600 group cursor-pointer transition-transform duration-300 hover:scale-105">
+      <NavLink
+        to="/"
+        className="flex gap-x-0.5 items-center text-amber-600 group cursor-pointer transition-transform duration-300 hover:scale-105"
+      >
         <div className="transition-transform duration-300 group-hover:rotate-12">
           <Store size={37} />
         </div>
@@ -102,7 +101,7 @@ function Navbar() {
           <h2 className="text-lg font-bold">Market4P</h2>
           <h3 className="text-[0.7rem] -mt-1.5">Fresh Foods Online</h3>
         </div>
-      </div>
+      </NavLink>
 
       <nav className="flex gap-x-4 items-center justify-around">
         {[
@@ -116,8 +115,8 @@ function Navbar() {
             <NavLink
               to={item.to}
               className={({ isActive }) =>
-
-                `transition-colors block px-4 py-3  duration-300 ${isActive ? "text-amber-600" : "hover:text-amber-600"
+                `transition-colors block px-4 py-3  duration-300 ${
+                  isActive ? "text-amber-600" : "hover:text-amber-600"
                 }`
               }
             >
@@ -130,9 +129,12 @@ function Navbar() {
 
       <div className="flex gap-x-4 items-center">
         {/* Search */}
-        <div className="p-2 hover:text-amber-600 hover:cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-12">
+        <NavLink
+          to="/search"
+          className="p-2 hover:text-amber-600 hover:cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-12"
+        >
           <Search size={22} />
-        </div>
+        </NavLink>
 
         {/* Cart */}
         <NavLink
@@ -140,7 +142,6 @@ function Navbar() {
           className="p-2 hover:text-amber-600 hover:cursor-pointer transition-all duration-300 hover:scale-110 relative group"
         >
           <ShoppingCart size={22} />
-
         </NavLink>
 
         {/* Notification Bell */}
@@ -180,8 +181,9 @@ function Navbar() {
                   notifications.map((notif) => (
                     <div
                       key={notif._id}
-                      className={`px-4 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors duration-200 cursor-pointer ${!notif.isRead ? "bg-amber-50/50" : ""
-                        }`}
+                      className={`px-4 py-3 border-b border-gray-100 hover:bg-amber-50 transition-colors duration-200 cursor-pointer ${
+                        !notif.isRead ? "bg-amber-50/50" : ""
+                      }`}
                     >
                       <div className="flex items-start gap-3">
                         {!notif.isRead && (
@@ -232,7 +234,7 @@ function Navbar() {
                 className="flex items-center cursor-pointer gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 hover:scale-105"
               >
                 <img
-                  src={userAvatar}
+                  src={userAvatar} // 2. Sử dụng ảnh đã import
                   alt={user.displayName || "Avatar"}
                   className="w-8 h-8 rounded-full object-cover border-2 border-amber-500"
                 />
@@ -241,8 +243,9 @@ function Navbar() {
                 </span>
                 <ChevronDown
                   size={16}
-                  className={`transition-transform duration-300 ${showUserMenu ? "rotate-180" : ""
-                    }`}
+                  className={`transition-transform duration-300 ${
+                    showUserMenu ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 

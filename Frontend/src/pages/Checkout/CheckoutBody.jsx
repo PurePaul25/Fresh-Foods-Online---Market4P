@@ -192,7 +192,7 @@ export default function CheckoutBody() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">
-      <div className="max-w-6xl mx-auto px-4 pb-10 pt-30">
+      <div className="max-w-6xl mx-auto px-4 pb-10 pt-28">
         <div
           ref={stepsRef}
           className={`flex items-center justify-center mb-8 transition-all duration-700 ${
@@ -516,12 +516,12 @@ export default function CheckoutBody() {
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
                       placeholder="Mã giảm giá"
-                      className="w-full pl-9 pr-4 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full pl-9 pr-4 duration-200 py-2 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
                   <button
                     onClick={applyCoupon}
-                    className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors"
+                    className="px-4 py-2 cursor-pointer duration-200 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors"
                   >
                     Áp dụng
                   </button>
@@ -558,7 +558,7 @@ export default function CheckoutBody() {
               {/* Checkout Button */}
               <button
                 onClick={handleCheckout}
-                className="w-full mt-6 py-4 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
+                className="w-full mt-6 py-4 cursor-pointer bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
               >
                 Đặt hàng
                 <ChevronRight className="w-5 h-5" />

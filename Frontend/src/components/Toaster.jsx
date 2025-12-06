@@ -14,6 +14,9 @@ const CustomToaster = () => {
           padding: "12px 16px",
           color: "#374151",
           borderRadius: "8px",
+          // Thêm style mặc định cho toast() (sẽ dùng cho info)
+          background: "#EFF6FF", // bg-blue-50
+          border: "1px solid #3B82F6", // border-blue-500
           fontSize: "14px",
         },
         success: {

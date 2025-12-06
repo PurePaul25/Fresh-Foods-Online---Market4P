@@ -7,8 +7,12 @@ import About from "../pages/About/About";
 import Contact from "../pages/Contact/Contact";
 import Checkout from "../pages/Checkout/Checkout";
 import Shop from "../pages/Shop/Shop";
+import Search from "../pages/Search/Search";
 import Cart from "../pages/Cart/Cart.jsx";
 import UserNotifications from "../components/User/Notifications.jsx";
+import Account from "../components/User/Account.jsx";
+import UserOrders from "../components/User/UserOrders.jsx";
+import UserAddresses from "../components/User/UserAddresses.jsx";
 
 import AdminDashboard from "../pages/Admin/Dashboard";
 import DashboardHome from "../components/Admin/content/DashboardHome.jsx";
@@ -43,9 +47,13 @@ export default function AppRouter() {
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
           <Route path="shop" element={<Shop />} />
+          <Route path="search" element={<Search />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="cart" element={<Cart />} />
           <Route path="notifications" element={<UserNotifications />} />
+          <Route path="account" element={<Account />} />
+          <Route path="orders" element={<UserOrders />} />
+          <Route path="addresses" element={<UserAddresses />} />
         </Route>
 
         {/* Admin route */}

@@ -1,8 +1,8 @@
 // src/services/api.js
 const VITE_API_URL_ENV = import.meta.env.VITE_API_URL;
 const API_BASE_URL = VITE_API_URL_ENV
-  ? `${VITE_API_URL_ENV}/api`
-  : "http://localhost:5001/api";
+  ? `${VITE_API_URL_ENV}`
+  : "http://localhost:5001";
 
 class ApiService {
   constructor() {
@@ -76,7 +76,7 @@ class ApiService {
     this.refreshing = true;
 
     try {
-      const response = await fetch(`${this.baseURL}/auth/refresh`, {
+      const response = await fetch(`${this.baseURL}/api/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });
@@ -106,14 +106,14 @@ class ApiService {
   // ==================== AUTH ====================
 
   async signup(userData) {
-    return this.request("/auth/signup", {
+    return this.request("/api/auth/signup", {
       method: "POST",
       body: JSON.stringify(userData),
     });
   }
 
   async signin(email, password) {
-    const data = await this.request("/auth/signin", {
+    const data = await this.request("/api/auth/signin", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
@@ -126,6 +126,10 @@ class ApiService {
         JSON.stringify({
           userId: data.userId,
           displayName: data.displayName,
+          username: data.username,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
           role: data.role,
         })
       );
@@ -136,7 +140,7 @@ class ApiService {
 
   async signout() {
     try {
-      await this.request("/auth/signout", { method: "POST" });
+      await this.request("/api/auth/signout", { method: "POST" });
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
@@ -144,7 +148,7 @@ class ApiService {
   }
 
   async getCurrentUser() {
-    return this.request("/users/me");
+    return this.request("/api/users/me");
   }
 
   // ==================== PRODUCTS ====================
@@ -156,16 +160,16 @@ class ApiService {
       ...params,
     };
     const queryString = new URLSearchParams(defaultParams).toString();
-    return this.request(`/products?${queryString}`);
+    return this.request(`/api/products?${queryString}`);
   }
 
   async getProductById(id) {
-    return this.request(`/products/${id}`);
+    return this.request(`/api/products/${id}`);
   }
 
   async createProduct(formData) {
     // FormData để upload ảnh
-    const url = `${this.baseURL}/products`;
+    const url = `${this.baseURL}/api/products`;
 
     const doRequest = async () => {
       const res = await fetch(url, {
@@ -210,7 +214,7 @@ class ApiService {
   }
 
   async updateProduct(id, formData) {
-    const url = `${this.baseURL}/products/${id}`;
+    const url = `${this.baseURL}/api/products/${id}`;
 
     const doRequest = async () => {
       const res = await fetch(url, {
@@ -255,7 +259,7 @@ class ApiService {
   }
 
   async deleteProduct(id) {
-    return this.request(`/products/${id}`, {
+    return this.request(`/api/products/${id}`, {
       method: "DELETE",
     });
   }
@@ -263,32 +267,32 @@ class ApiService {
   // ==================== CART ====================
 
   async getCart() {
-    return this.request("/cart");
+    return this.request("/api/cart");
   }
 
   async addToCart(productId, quantity = 1) {
-    return this.request("/cart/add", {
+    return this.request("/api/cart/add", {
       method: "POST",
       body: JSON.stringify({ product_id: productId, quantity }),
     });
   }
 
   async updateCartItem(productId, quantity) {
-    return this.request("/cart/update", {
+    return this.request("/api/cart/update", {
       method: "PUT",
       body: JSON.stringify({ product_id: productId, quantity }),
     });
   }
 
   async removeFromCart(productId) {
-    return this.request("/cart/remove", {
+    return this.request("/api/cart/remove", {
       method: "DELETE",
       body: JSON.stringify({ product_id: productId }),
     });
   }
 
   async clearCart() {
-    return this.request("/cart/clear", {
+    return this.request("/api/cart/clear", {
       method: "DELETE",
     });
   }
@@ -296,7 +300,7 @@ class ApiService {
   // ==================== ORDERS ====================
 
   async createOrder(orderData) {
-    return this.request("/orders", {
+    return this.request("/api/orders", {
       method: "POST",
       body: JSON.stringify(orderData),
     });
@@ -304,16 +308,16 @@ class ApiService {
 
   async getUserOrders(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/orders?${queryString}`);
+    return this.request(`/api/orders?${queryString}`);
   }
 
   async getAllOrders(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/orders/admin/all?${queryString}`);
+    return this.request(`/api/orders/admin/all?${queryString}`);
   }
 
   async updateOrderStatus(orderId, status) {
-    return this.request(`/orders/${orderId}/status`, {
+    return this.request(`/api/orders/${orderId}/status`, {
       method: "PUT",
       body: JSON.stringify({ status }),
     });
@@ -323,11 +327,11 @@ class ApiService {
 
   async getProductReviews(productId, params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/products/${productId}/reviews?${queryString}`);
+    return this.request(`/api/products/${productId}/reviews?${queryString}`);
   }
 
   async createReview(productId, reviewData) {
-    return this.request(`/products/${productId}/reviews`, {
+    return this.request(`/api/products/${productId}/reviews`, {
       method: "POST",
       body: JSON.stringify(reviewData),
     });
@@ -336,22 +340,22 @@ class ApiService {
   // ==================== ADMIN ====================
 
   async getDashboardStats() {
-    return this.request("/admin/stats");
+    return this.request("/api/admin/stats");
   }
 
   async getRevenueAnalytics(period = "month") {
-    return this.request(`/admin/revenue?period=${period}`);
+    return this.request(`/api/admin/revenue?period=${period}`);
   }
 
   // Get all customers with order details
   async getCustomers(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/admin/customers?${queryString}`);
+    return this.request(`/api/admin/customers?${queryString}`);
   }
 
   // Ban a customer
   async banCustomer(userId, reason) {
-    return this.request(`/admin/users/${userId}/ban`, {
+    return this.request(`/api/admin/users/${userId}/ban`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -362,14 +366,14 @@ class ApiService {
 
   // Unban a customer
   async unbanCustomer(userId) {
-    return this.request(`/admin/users/${userId}/unban`, {
+    return this.request(`/api/admin/users/${userId}/unban`, {
       method: "PATCH",
     });
   }
 
   // Delete a customer
   async deleteCustomer(userId) {
-    return this.request(`/admin/users/${userId}`, {
+    return this.request(`/api/admin/users/${userId}`, {
       method: "DELETE",
     });
   }

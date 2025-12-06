@@ -19,6 +19,15 @@ const RootLayout = () => {
     }
   }, [location, navigate]);
 
+  // Hiển thị toast đăng xuất thành công từ sessionStorage
+  useEffect(() => {
+    const logoutMessage = sessionStorage.getItem("logoutSuccessMessage");
+    if (logoutMessage) {
+      toast.success(logoutMessage, { duration: 4000 });
+      sessionStorage.removeItem("logoutSuccessMessage");
+    }
+  }, [location.pathname]);
+
   return (
     <>
       {/* Sử dụng CustomToaster để có style nhất quán trên toàn ứng dụng */}

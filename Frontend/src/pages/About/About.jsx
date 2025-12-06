@@ -14,22 +14,27 @@ function useScrollAnimation(threshold = 0.1) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const currentElement = ref.current;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+          if (currentElement) {
+            observer.unobserve(currentElement);
+          }
         }
       },
       { threshold }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    if (currentElement) {
+      observer.observe(currentElement);
     }
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
+      if (currentElement) {
+        observer.unobserve(currentElement);
       }
     };
   }, [threshold]);
@@ -69,10 +74,10 @@ function About() {
   ];
 
   const team = [
-    { name: "Huỳnh Văn Tài", avt: VanTai },
-    { name: "Lê Nguyễn Thành Phát", avt: Phat },
-    { name: "Phạm Xuân Hòa", avt: Hoa },
-    { name: "Đoàn Lưu Gia Bảo", avt: Bao },
+    { name: "Huỳnh Văn Tài", role: "Developer", avt: VanTai },
+    { name: "Lê Nguyễn Thành Phát", role: "Developer", avt: Phat },
+    { name: "Phạm Xuân Hòa", role: "Developer", avt: Hoa },
+    { name: "Đoàn Lưu Gia Bảo", role: "Developer", avt: Bao },
   ];
 
   return (
@@ -80,8 +85,8 @@ function About() {
       <Navbar></Navbar>
 
       <div className="pt-19">
-        {/* Why Section với animation */}
-        <div ref={whyRef} className="flex items-center p-20 pl-40">
+        {/* Why Section */}
+        <div ref={whyRef} className="flex items-center p-20 pl-40 gap-x-8">
           {/* Text Section */}
           <div className="flex flex-col gap-10 w-1/2">
             <h2
@@ -144,7 +149,7 @@ function About() {
           </div>
         </div>
 
-        {/* Team Section với animation */}
+        {/* Team Section */}
         <div ref={teamRef} className="p-20 bg-gray-100">
           <div
             className={`text-center w-210 mx-auto transition-all duration-700 ${
@@ -168,23 +173,24 @@ function About() {
             {team.map((member, index) => (
               <div
                 key={index}
-                className={`text-center group transition-all duration-500 hover:-translate-y-2 ${
+                className={`text-center group p-6 bg-white/50 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:bg-white ${
                   teamVisible
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-12"
                 }`}
-                style={{ transitionDelay: `${index * 150}ms` }}
               >
-                <div className="overflow-hidden rounded">
+                <div className="relative inline-block">
                   <img
                     src={member.avt}
                     alt={member.name}
-                    className="w-50 h-60 object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-40 h-40 object-cover rounded-full border-4 border-white shadow-md transition-transform duration-500 group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent group-hover:border-amber-500 transition-all duration-300"></div>
                 </div>
-                <p className="font-semibold mt-2 transition-colors duration-300 group-hover:text-amber-600">
+                <p className="font-bold text-lg mt-4 transition-colors duration-300 group-hover:text-amber-600">
                   {member.name}
                 </p>
+                <p className="text-gray-500 text-sm">{member.role}</p>
               </div>
             ))}
           </div>
