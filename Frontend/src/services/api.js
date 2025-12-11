@@ -2,7 +2,7 @@
 const VITE_API_URL_ENV = import.meta.env.VITE_API_URL;
 const API_BASE_URL = VITE_API_URL_ENV
   ? `${VITE_API_URL_ENV}`
-  : "http://localhost:5001";
+  : "https://fresh-foods-online-market4p.onrender.com";
 
 class ApiService {
   constructor() {

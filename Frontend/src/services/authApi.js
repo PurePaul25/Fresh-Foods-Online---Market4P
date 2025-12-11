@@ -1,5 +1,6 @@
 // API service để kết nối với backend MongoDB
-const API_BASE_URL = "http://localhost:5001/api/auth";
+const API_BASE_URL =
+  "https://fresh-foods-online-market4p.onrender.com/api/auth";
 
 /**
  * Đăng nhập user
@@ -23,7 +24,7 @@ export const loginUser = async (email, password) => {
   }
 
   const data = await response.json();
-  console.log("Response từ backend:", data); // Debug
+  // console.log("Response từ backend:", data); // Debug
   return {
     accessToken: data.accessToken,
     role: data.role,

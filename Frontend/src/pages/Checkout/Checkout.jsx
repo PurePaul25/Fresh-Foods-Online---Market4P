@@ -1,22 +1,21 @@
-
-import Footer from "../../components/Footer"
-import CheckoutBody from "./CheckoutBody"
-import Navbar from "../../components/navbar"
+import Footer from "../../components/Footer";
+import CheckoutBody from "./CheckoutBody";
+import Navbar from "../../components/Navbar";
 
 function Checkout() {
-    return (
-        <main>
-            <header>
-                <Navbar></Navbar>
-            </header>
-            <div>
-                <CheckoutBody></CheckoutBody>
-            </div>
-            <footer>
-                <Footer></Footer>
-            </footer>
-        </main>
-    )
+  return (
+    <main>
+      <header>
+        <Navbar></Navbar>
+      </header>
+      <div>
+        <CheckoutBody></CheckoutBody>
+      </div>
+      <footer>
+        <Footer></Footer>
+      </footer>
+    </main>
+  );
 }
 
-export default Checkout
+export default Checkout;
