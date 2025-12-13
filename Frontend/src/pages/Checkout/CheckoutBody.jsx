@@ -22,7 +22,6 @@ import {
   Trash2,
   Tag,
 } from "lucide-react";
-import PaymentQR from "../../components/PaymentQR";
 import toast from "react-hot-toast";
 import apiService from "../../services/api.js";
 
@@ -90,8 +89,6 @@ export default function CheckoutBody() {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [showPaymentQR, setShowPaymentQR] = useState(false);
-  const [orderId, setOrderId] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -184,7 +181,6 @@ export default function CheckoutBody() {
 
       // Nếu không bị cấm, tiếp tục xử lý đơn hàng
       const newOrderId = "DH" + Date.now().toString().slice(-8);
-      setOrderId(newOrderId);
 
       // Ghi log thông tin đặt hàng
       console.log("Order Info:", {
@@ -194,12 +190,7 @@ export default function CheckoutBody() {
         formData,
         total,
       });
-
-      if (paymentMethod === "bank") {
-        setShowPaymentQR(true);
-      } else {
-        toast.success(`Đặt hàng thành công! Mã đơn hàng: ${newOrderId}`);
-      }
+      toast.success(`Đặt hàng thành công! Mã đơn hàng: ${newOrderId}`);
     } catch (error) {
       console.error("Error during checkout:", error);
       if (error.message && error.message.includes("banned")) {
@@ -613,15 +604,6 @@ export default function CheckoutBody() {
           </div>
         </div>
       </div>
-
-      {/* Payment QR Modal */}
-      {showPaymentQR && (
-        <PaymentQR
-          orderId={orderId}
-          amount={total}
-          onClose={() => setShowPaymentQR(false)}
-        />
-      )}
     </div>
   );
 }
