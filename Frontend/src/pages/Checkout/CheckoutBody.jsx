@@ -22,7 +22,7 @@ import {
   Trash2,
   Tag,
 } from "lucide-react";
-import PaymentQR from "../../components/PaymentQR.jsx";
+import PaymentQR from "../../components/PaymentQR";
 import toast from "react-hot-toast";
 import apiService from "../../services/api.js";
 
