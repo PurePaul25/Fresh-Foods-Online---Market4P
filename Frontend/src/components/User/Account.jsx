@@ -300,7 +300,7 @@ const Account = () => {
           {/* Security */}
           <div className="bg-white rounded-2xl shadow-lg border border-amber-100 p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Bảo mật</h2>
-            <div className="space-y-4">
+            <div className="space-y-4 space-x-2">
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                 <div>
                   <h3 className="font-medium text-gray-800">Đổi mật khẩu</h3>

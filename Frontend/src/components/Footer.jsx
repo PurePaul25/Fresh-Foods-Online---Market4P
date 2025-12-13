@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="lg:w-1/3">
           <h1 className="text-xl font-semibold">Về Chúng tôi</h1>
           <div className="w-full h-0.5 my-3 bg-amber-600"></div>
-          <p className="text-gray-400 text-left lg:text-justify">
+          <p className="text-gray-400 text-justify">
             Chúng tôi là đội ngũ đam mê mang đến những sản phẩm chất lượng, dịch
             vụ tận tâm và trải nghiệm tốt nhất cho khách hàng.
             <br />
@@ -32,7 +32,7 @@ const Footer = () => {
               />
               <button
                 type="submit"
-                className="p-4 hover:cursor-pointer hover:bg-amber-700 text-white bg-amber-600 transition-colors"
+                className="px-4 py-3.5 hover:cursor-pointer hover:bg-amber-700 text-white bg-amber-600 transition-colors"
               >
                 <Send size={20}></Send>
               </button>
@@ -47,13 +47,13 @@ const Footer = () => {
             UTH, Binh Thanh, Ho Chi Minh City
             <a
               href="mailto:abc@market4p.com"
-              className="block hover:text-amber-600 transition-colors"
+              className="block mt-2.5 hover:text-amber-600 transition hover:translate-x-2 duration-200"
             >
               abc@market4p.com
             </a>
             <a
               href="tel:+84123456789"
-              className="block hover:text-amber-600 transition-colors"
+              className="block hover:text-amber-600 transition hover:translate-x-2 duration-200"
             >
               +84 123 456 789
             </a>

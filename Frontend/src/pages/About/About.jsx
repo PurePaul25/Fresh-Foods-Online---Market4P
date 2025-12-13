@@ -110,16 +110,14 @@ function About() {
               >
                 {row.map((feature, index) => {
                   const Icon = feature.icon;
-                  const delay = (rowIndex * 2 + index) * 150;
                   return (
                     <div
                       key={index}
-                      className={`flex items-start gap-4 w-full sm:w-1/2 transition-all duration-500 hover:translate-x-2 ${
+                      className={`flex items-center gap-4 w-full sm:w-1/2 transition-all duration-500 hover:translate-x-2 ${
                         whyVisible
                           ? "opacity-100 translate-y-0"
                           : "opacity-0 translate-y-8"
                       }`}
-                      style={{ transitionDelay: `${delay}ms` }}
                     >
                       <div className="p-4 rounded-full text-amber-600 border border-dashed border-amber-600 shrink-0 transition-all duration-300 hover:bg-amber-600 hover:text-white hover:scale-110">
                         <Icon size={35} />
@@ -139,7 +137,7 @@ function About() {
 
           {/* Image Section */}
           <div
-            className={`w-full lg:w-1/2 flex justify-center transition-all duration-700 delay-500 ${
+            className={`w-full lg:w-1/2 flex justify-center transition-all duration-700 ${
               whyVisible
                 ? "opacity-100 translate-x-0"
                 : "opacity-0 translate-x-12"
@@ -184,7 +182,6 @@ function About() {
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-12"
                 }`}
-                style={{ transitionDelay: `${index * 150}ms` }}
               >
                 <div className="relative inline-block">
                   <img

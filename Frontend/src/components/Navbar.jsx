@@ -499,7 +499,7 @@ function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="lg:hidden fixed inset-0 top-[77px] bg-[#051922]/80 backdrop-blur-sm p-6 flex flex-col z-40"
+            className="lg:hidden fixed inset-0 top-[70px] bg-[#051922]/80 backdrop-blur-sm p-6 flex flex-col z-40"
             onClick={() => setMobileMenuOpen(false)}
           >
             <div

@@ -57,6 +57,7 @@ function Shop() {
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showCategoryProducts, setShowCategoryProducts] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +90,18 @@ function Shop() {
 
     fetchProducts();
   }, []);
+
+  // Effect to prevent body scroll when modal is open
+  useEffect(() => {
+    if (showCategoryProducts) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showCategoryProducts]);
 
   const categories = [
     { id: "fruits", name: "Trái cây", image: Cate_Fruits },
@@ -168,12 +181,16 @@ function Shop() {
 
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId);
-    setShowCategoryProducts(true);
+    setShowCategoryProducts(true); // Mount the component
+    setTimeout(() => setIsModalVisible(true), 10); // Trigger transition
   };
 
   const closeCategoryModal = () => {
-    setShowCategoryProducts(false);
-    setSelectedCategory(null);
+    setIsModalVisible(false); // Trigger exit transition
+    setTimeout(() => {
+      setShowCategoryProducts(false); // Unmount after transition
+      setSelectedCategory(null);
+    }, 300); // Match transition duration
   };
 
   const selectedCategoryData = categories.find(
@@ -282,7 +299,7 @@ function Shop() {
             Nhấn vào danh mục để xem sản phẩm
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-start gap-6 md:gap-10">
+          <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-6 md:gap-10">
             {categories.map((cat, index) => (
               <div
                 key={cat.id}
@@ -543,58 +560,85 @@ function Shop() {
 
         {/* Category Products Modal */}
         {showCategoryProducts && selectedCategoryData && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white p-6 border-b flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-gray-800">
-                  {selectedCategoryData.name}
-                </h3>
-                <button
-                  onClick={closeCategoryModal}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="p-6">
-                {categoryProducts[selectedCategory]?.length === 0 ? (
-                  <div className="text-center text-gray-500 py-10">
-                    <p>Chưa có sản phẩm trong danh mục này.</p>
+          <div
+            className={`fixed inset-0 z-50 flex md:items-center md:justify-center transition-colors duration-300 ${
+              isModalVisible ? "bg-black/60" : "bg-transparent"
+            }`}
+            onClick={closeCategoryModal}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className={`bg-white rounded-t-2xl md:rounded-2xl max-w-4xl w-full max-h-full md:max-h-[90vh] flex flex-col self-end md:self-center transition-transform duration-300 ease-out ${
+                isModalVisible
+                  ? "translate-y-0 md:scale-100 opacity-100"
+                  : "translate-y-full md:translate-y-0 md:scale-95 opacity-0"
+              }`}
+            >
+              {/* Modal Content with overflow */}
+              <div className="overflow-y-auto flex flex-col">
+                {/* Header */}
+                <div className="sticky top-0 bg-white p-4 md:p-6 border-b z-10">
+                  {/* Mobile Handle */}
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-gray-300 rounded-full md:hidden"></div>
+                  <div className="flex items-center justify-between pt-4 md:pt-0">
+                    <h3 className="text-xl md:text-2xl font-bold text-gray-800">
+                      {selectedCategoryData.name}
+                    </h3>
+                    <button
+                      onClick={closeCategoryModal}
+                      className="text-gray-400 cursor-pointer transition-colors hover:text-gray-700 text-3xl md:text-2xl"
+                    >
+                      ✕
+                    </button>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {categoryProducts[selectedCategory]?.map((product) => (
-                      <div
-                        key={product._id || product.id}
-                        className="group bg-gray-50 rounded-xl p-4 hover:shadow-lg transition-all"
-                      >
-                        <div className="flex justify-center">
-                          <img
-                            src={getProductImage(product) || "/placeholder.svg"}
-                            alt={product.name}
-                            className="w-24 h-24 object-contain"
-                          />
+                </div>
+
+                {/* Body */}
+                <div className="p-4 md:p-6">
+                  {categoryProducts[selectedCategory]?.length === 0 ? (
+                    <div className="text-center text-gray-500 py-10">
+                      <div className="text-5xl mb-4">🍃</div>
+                      <p className="font-semibold">Chưa có sản phẩm</p>
+                      <p className="text-sm">
+                        Hiện chưa có sản phẩm trong danh mục này.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {categoryProducts[selectedCategory]?.map((product) => (
+                        <div
+                          key={product._id || product.id}
+                          className="group bg-white border border-gray-100 rounded-xl hover:shadow-lg transition-all flex flex-col text-left"
+                        >
+                          <div className="flex justify-center bg-gray-50 rounded-t-xl p-2">
+                            <img
+                              src={
+                                getProductImage(product) || "/placeholder.svg"
+                              }
+                              alt={product.name}
+                              className="w-28 h-28 object-contain"
+                            />
+                          </div>
+                          <div className="p-3 flex flex-col grow">
+                            <p className="font-medium text-sm text-gray-800 line-clamp-2 grow">
+                              {product.name}
+                            </p>
+                            <p className="text-amber-600 font-bold mt-2 text-base">
+                              {(product.discount > 0
+                                ? product.price * (1 - product.discount / 100)
+                                : product.price
+                              ).toLocaleString()}
+                              đ
+                            </p>
+                            <div className="mt-3">
+                              <Button product={product} />
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-center mt-3">
-                          <p className="font-medium text-gray-800 line-clamp-2">
-                            {product.name}
-                          </p>
-                          <p className="text-amber-600 font-bold mt-1">
-                            {product.price.toLocaleString()}đ
-                            {product.unit && (
-                              <span className="text-gray-500 font-normal">
-                                /{product.unit}
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                        <div className="mt-3">
-                          <Button product={product} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-function UserInfor() {
+function UserInfo() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -18,4 +18,4 @@ function UserInfor() {
   return <div>{user || "Guest"}</div>;
 }
 
-export default UserInfor;
+export default UserInfo;

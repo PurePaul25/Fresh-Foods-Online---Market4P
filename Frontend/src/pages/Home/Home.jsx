@@ -55,8 +55,8 @@ function Home() {
   const [promoRef, promoVisible] = useScrollAnimation();
 
   const products = [
-    { id: 1, name: "Dâu tây", price: 165000, image: berry },
-    { id: 2, name: "Nho", price: 125000, image: strawberry },
+    { id: 1, name: "Nho", price: 165000, image: berry },
+    { id: 2, name: "Dâu tây", price: 125000, image: strawberry },
     { id: 3, name: "Chanh", price: 45000, image: lemon },
   ];
 
@@ -94,7 +94,7 @@ function Home() {
             }`}
           >
             <p
-              className={`text-amber-600 text-xl transition-all duration-700 delay-200 ${
+              className={`text-amber-600 text-xl transition-all duration-700 ${
                 heroVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 -translate-y-4"
@@ -103,7 +103,7 @@ function Home() {
               Tươi & Sạch
             </p>
             <p
-              className={`text-4xl md:text-5xl text-white my-2 transition-all duration-700 delay-400 ${
+              className={`text-4xl md:text-5xl text-white my-2 transition-all duration-700 ${
                 heroVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
               }`}
             >
@@ -111,7 +111,7 @@ function Home() {
             </p>
 
             <div
-              className={`flex flex-col sm:flex-row items-center justify-center font-semibold gap-4 text-white mt-6 transition-all duration-700 delay-600 ${
+              className={`flex flex-col sm:flex-row items-center justify-center font-semibold gap-4 text-white mt-6 transition-all duration-700 ${
                 heroVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4"
@@ -150,10 +150,9 @@ function Home() {
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-8"
                 }`}
-                style={{ transitionDelay: `${index * 150}ms` }}
               >
                 <div className="p-3 rounded-full border border-amber-600 border-dotted text-amber-600 transition-all duration-300 hover:bg-amber-600 hover:text-white">
-                  <Icon size={40} />
+                  <Icon size={36} />
                 </div>
                 <div>
                   <p className="font-bold text-lg">{service.title}</p>
@@ -195,7 +194,6 @@ function Home() {
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-12"
                 }`}
-                style={{ transitionDelay: `${index * 200}ms` }}
               >
                 <div className="overflow-hidden rounded-lg">
                   <img
@@ -204,7 +202,7 @@ function Home() {
                     className="object-cover w-full h-auto transition-transform duration-500 hover:scale-110"
                   />
                 </div>
-                <div className="text-center flex-grow flex flex-col">
+                <div className="text-center grow flex flex-col">
                   <p className="text-xl font-bold mt-4">{product.name}</p>
                   <p className="my-3">Per Kg</p>
                   <p className="text-2xl font-bold text-amber-600">
@@ -253,7 +251,7 @@ function Home() {
           </div>
 
           <div // Container cho text
-            className={`text-center lg:text-left transition-all duration-700 ease-out delay-200 lg:delay-300 ${
+            className={`text-center lg:text-left transition-all duration-700 ease-out ${
               promoVisible
                 ? "opacity-100 translate-y-0 lg:translate-x-0"
                 : "opacity-0 translate-y-12 lg:translate-y-0 lg:translate-x-12"

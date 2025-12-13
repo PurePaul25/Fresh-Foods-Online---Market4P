@@ -426,16 +426,22 @@ const UserOrders = () => {
                       {expandedOrderId === order._id
                         ? "Ẩn chi tiết"
                         : "Xem chi tiết"}
-                      {expandedOrderId === order._id ? (
-                        <ChevronDown className="w-4 h-4" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4" />
-                      )}
+                      <ChevronRight
+                        className={`w-4 h-4 transition-transform duration-300 ${
+                          expandedOrderId === order._id ? "rotate-90" : ""
+                        }`}
+                      />
                     </button>
                   </div>
 
                   {/* Expanded Details Section */}
-                  {expandedOrderId === order._id && (
+                  <div
+                    className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                      expandedOrderId === order._id
+                        ? "max-h-[500px]"
+                        : "max-h-0"
+                    }`}
+                  >
                     <div className="p-4 border-t border-gray-200 bg-white">
                       <div className="grid md:grid-cols-2 gap-6 text-sm">
                         {/* Shipping Info */}
@@ -499,7 +505,7 @@ const UserOrders = () => {
                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               ))
             ) : (

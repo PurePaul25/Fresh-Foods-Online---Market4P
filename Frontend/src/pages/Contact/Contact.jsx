@@ -69,10 +69,10 @@ function Contact() {
           {/* Form với animation */}
           <div
             ref={formRef} // Form Section
-            className={`lg:col-span-2 bg-white p-8 rounded-2xl shadow-lg transition-all duration-700 ${
+            className={`lg:col-span-2 bg-white p-8 rounded-2xl shadow-lg transition-all duration-700 ease-out ${
               formVisible
-                ? "opacity-100 translate-x-0"
-                : "opacity-0 -translate-x-12"
+                ? "opacity-100 translate-y-0 lg:translate-x-0"
+                : "opacity-0 translate-y-16 lg:translate-y-0 lg:-translate-x-12"
             }`}
           >
             <div>
@@ -133,10 +133,10 @@ function Contact() {
               return (
                 <div
                   key={index}
-                  className={`flex items-start gap-x-4 transition-all duration-500 group ${
+                  className={`flex items-center gap-x-4 transition-all duration-500 group ${
                     infoVisible
-                      ? "opacity-100 translate-x-0"
-                      : "opacity-0 translate-x-8"
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-8"
                   }`}
                   style={{ transitionDelay: `${index * 150}ms` }}
                 >
@@ -165,7 +165,7 @@ function Contact() {
         {/* Map Section với animation */}
         <div ref={mapRef}>
           <div
-            className={`flex items-center justify-center gap-x-2 bg-[#162133] p-20 transition-all duration-700 ${
+            className={`flex items-center justify-center gap-x-2 bg-[#162133] px-10 py-18 sm:p-20 transition-all duration-700 ${
               mapVisible ? "opacity-100" : "opacity-0"
             }`}
           >

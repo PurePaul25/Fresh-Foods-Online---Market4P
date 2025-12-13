@@ -207,7 +207,7 @@ function Cart() {
         <Navbar />
       </header>
 
-      <div className="pt-24 pb-16">
+      <div className="py-16">
         {/* Header Section */}
         <section ref={headerRef} className="px-6 md:px-16 lg:px-30 py-8">
           <div
@@ -240,10 +240,10 @@ function Cart() {
               <ShoppingBag size={32} className="text-amber-600" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                 Giỏ hàng của bạn
               </h1>
-              <p className="text-gray-500 mt-1">
+              <p className="text-sm sm:text-base text-gray-500 mt-1">
                 {cartItems.length} sản phẩm trong giỏ hàng
               </p>
             </div>
