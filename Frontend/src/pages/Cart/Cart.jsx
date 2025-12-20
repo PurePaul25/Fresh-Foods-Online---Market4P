@@ -221,8 +221,8 @@ function Cart() {
         <header>
           <Navbar />
         </header>
-        <div className="min-h-[60vh] flex items-center justify-center bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">
-          <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md mx-4">
+        <div className="min-h-[80vh] flex items-center justify-center bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">
+          <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md mx-4 mt-10">
             <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <User className="w-10 h-10 text-amber-600" />
             </div>
