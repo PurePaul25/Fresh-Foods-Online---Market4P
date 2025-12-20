@@ -183,7 +183,7 @@ function Navbar() {
                 setShowNotifications(!showNotifications);
                 setShowUserMenu(false);
               }}
-              className="p-2 focus:text-amber-600 hover:text-amber-600 hover:cursor-pointer transition-all duration-300 hover:scale-110 relative"
+              className="p-2 hover:text-amber-600 hover:cursor-pointer transition-all duration-300 hover:scale-110 relative"
             >
               <Bell
                 size={22}

@@ -1,5 +1,6 @@
 import { Send, Store } from "lucide-react";
-import { NavLink } from "react-router-dom";
+
+const Year = new Date().getFullYear();
 
 const Footer = () => {
   return (
@@ -63,7 +64,8 @@ const Footer = () => {
       {/* Copyright */}
       <div className="px-6 lg:px-20 py-5 bg-[#051922] text-white border-t border-t-white/10 text-center text-sm">
         <p>
-          Copyrights © 2025 - <span className="text-amber-600">Market4P, </span>
+          Copyrights © {Year} -{" "}
+          <span className="text-amber-600">Market4P, </span>
           All Rights Reserved.
         </p>
       </div>
