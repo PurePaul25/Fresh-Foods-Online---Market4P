@@ -8,6 +8,7 @@ import BongCaiXanh from "../../assets/images/bongcaixanh.png";
 import NhoDenKhongHat from "../../assets/images/nhodenkohat.jpg";
 import CamTienGiang from "../../assets/images/camtiengiang.jpg";
 import CaHoiNaUy from "../../assets/images/cahoinauy.png";
+import toast from "react-hot-toast";
 import {
   Trash2,
   Plus,
@@ -18,6 +19,7 @@ import {
   Shield,
   Gift,
   ChevronRight,
+  User,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 
@@ -65,6 +67,18 @@ const getProductImage = (product) => {
 
 function Cart() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
+  const [isLoggedIn] = useState(() => {
+    return !!localStorage.getItem("user");
+  });
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      toast.error("Vui lòng đăng nhập để xem giỏ hàng!", {
+        id: "cart-login-required",
+      });
+    }
+  }, [isLoggedIn]);
+
   const [headerRef, headerVisible] = useScrollAnimation();
   const [cartRef, cartVisible] = useScrollAnimation();
   const [suggestRef, suggestVisible] = useScrollAnimation();
@@ -200,6 +214,30 @@ function Cart() {
   // Kiểm tra tất cả đã được chọn
   const isAllSelected =
     cartItems.length > 0 && selectedItems.size === cartItems.length;
+
+  if (!isLoggedIn) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <header>
+          <Navbar />
+        </header>
+        <div className="min-h-[60vh] flex items-center justify-center bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">
+          <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md mx-4">
+            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <User className="w-10 h-10 text-amber-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-stone-800 mb-2">
+              Vui lòng đăng nhập
+            </h2>
+            <p className="text-stone-500 mb-6">
+              Bạn cần đăng nhập để xem giỏ hàng.
+            </p>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50">

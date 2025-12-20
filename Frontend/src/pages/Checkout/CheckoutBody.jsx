@@ -83,6 +83,18 @@ const paymentMethods = [
 export default function CheckoutBody() {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
 
+  const [isLoggedIn] = useState(() => {
+    return !!localStorage.getItem("user");
+  });
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      toast.error("Vui lòng đăng nhập để sử dụng thanh toán!", {
+        id: "login-required",
+      });
+    }
+  }, [isLoggedIn]);
+
   // eslint-disable-next-line no-unused-vars
   const [currentStep, setCurrentStep] = useState(1);
   const [shippingMethod, setShippingMethod] = useState("express");
@@ -206,6 +218,24 @@ export default function CheckoutBody() {
     { number: 2, title: "Thanh toán" },
     { number: 3, title: "Xác nhận" },
   ];
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md mx-4">
+          <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <User className="w-10 h-10 text-amber-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-stone-800 mb-2">
+            Vui lòng đăng nhập
+          </h2>
+          <p className="text-stone-500 mb-6">
+            Bạn cần đăng nhập để thực hiện thanh toán.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-yellow-50">

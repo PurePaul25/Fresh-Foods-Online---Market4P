@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button/Button";
@@ -49,11 +50,11 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 function Shop() {
-  const [heroRef, heroVisible] = useScrollAnimation();
-  const [categoryRef, categoryVisible] = useScrollAnimation();
-  const [saleRef, saleVisible] = useScrollAnimation();
-  const [bestSellingRef, bestSellingVisible] = useScrollAnimation();
-  const [newArrivalsRef, newArrivalsVisible] = useScrollAnimation();
+  const [heroRef] = useScrollAnimation();
+  const [categoryRef] = useScrollAnimation();
+  const [saleRef] = useScrollAnimation();
+  const [bestSellingRef] = useScrollAnimation();
+  const [newArrivalsRef] = useScrollAnimation();
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showCategoryProducts, setShowCategoryProducts] = useState(false);
@@ -193,6 +194,15 @@ function Shop() {
     }, 300); // Match transition duration
   };
 
+  const handleAuthCheck = (e) => {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      e.stopPropagation();
+      e.preventDefault();
+      toast.error("Vui lòng đăng nhập để sử dụng!");
+    }
+  };
+
   const selectedCategoryData = categories.find(
     (c) => c.id === selectedCategory
   );
@@ -300,7 +310,7 @@ function Shop() {
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-6 md:gap-10">
-            {categories.map((cat, index) => (
+            {categories.map((cat) => (
               <div
                 key={cat.id}
                 onClick={() => handleCategoryClick(cat.id)}
@@ -406,7 +416,7 @@ function Shop() {
                     </div>
                   </div>
 
-                  <div className="mt-4">
+                  <div className="mt-4" onClickCapture={handleAuthCheck}>
                     <Button product={product} />
                   </div>
                 </div>
@@ -474,7 +484,7 @@ function Shop() {
                     </div>
                   </div>
 
-                  <div className="mt-4">
+                  <div className="mt-4" onClickCapture={handleAuthCheck}>
                     <Button product={product} />
                   </div>
                 </div>
@@ -499,7 +509,7 @@ function Shop() {
             </div>
           ) : (
             <div className="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-              {newArrivals.map((product, index) => (
+              {newArrivals.map((product) => (
                 <div
                   key={product._id || product.id}
                   className="group bg-white rounded-2xl shadow-md p-4 transition-all duration-500 ease-out hover:shadow-2xl hover:-translate-y-3 cursor-pointer relative overflow-hidden flex flex-col"
@@ -549,7 +559,7 @@ function Shop() {
                     </div>
                   </div>
 
-                  <div className="mt-4">
+                  <div className="mt-4" onClickCapture={handleAuthCheck}>
                     <Button product={product} />
                   </div>
                 </div>
@@ -630,7 +640,10 @@ function Shop() {
                               ).toLocaleString()}
                               đ
                             </p>
-                            <div className="mt-3">
+                            <div
+                              className="mt-3"
+                              onClickCapture={handleAuthCheck}
+                            >
                               <Button product={product} />
                             </div>
                           </div>

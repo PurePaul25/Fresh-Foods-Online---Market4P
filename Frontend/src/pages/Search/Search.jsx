@@ -57,7 +57,6 @@ function SearchPage() {
     if (query) {
       performSearch(query);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   const handleSearch = (e) => {
@@ -94,7 +93,7 @@ function SearchPage() {
     <main className="min-h-screen bg-gray-50 bg-linear-to-b from-white to-amber-50/20">
       <Navbar />
 
-      <div className="pt-24 md:pt-28 px-4 sm:px-6 md:px-16 lg:px-32 pb-16">
+      <div className="pt-24 md:pt-26 px-4 sm:px-6 md:px-16 lg:px-32 pb-16">
         {/* Search Bar */}
         <div className="mb-6">
           <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
@@ -104,15 +103,15 @@ function SearchPage() {
                 placeholder="Tìm kiếm sản phẩm..."
                 value={searchQuery}
                 onChange={handleInputChange}
-                className="w-full py-4 pl-14 pr-36 text-lg border-2 border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 shadow-sm hover:shadow-md"
+                className="w-full py-3 pl-12 pr-36 text-lg border-2 border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all duration-300 shadow-sm hover:shadow-md"
               />
               <Search
-                className="absolute left-5 text-gray-400 group-focus-within:text-amber-600 transition-colors duration-300"
+                className="absolute left-4.5 text-gray-400 group-focus-within:text-amber-600 transition-colors duration-300"
                 size={24}
               />
               <button
                 type="submit"
-                className="absolute right-4 cursor-pointer bg-amber-600 text-white px-6 py-2 rounded-full hover:bg-amber-700 transition-all duration-300 font-semibold"
+                className="absolute right-4 cursor-pointer bg-amber-600 text-white px-6 py-1.5 rounded-full hover:bg-amber-700 transition-all duration-300 font-semibold"
               >
                 Tìm kiếm
               </button>
